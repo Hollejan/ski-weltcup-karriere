@@ -163,6 +163,8 @@ body[data-phase=prep] header.top{border-bottom:3px solid var(--ice)}
 .day-card .bigres{margin-top:0}
 @media(max-width:700px){.st{font-size:11px;gap:4px}.st span{width:22px;height:22px;font-size:12px}.phase{padding:10px}}
 
+.break-card{border-color:var(--ice);background:linear-gradient(160deg,#18304a,#13202f 70%);margin-bottom:16px}
+.gapgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:10px 0}.gapgrid div{background:var(--panel2);border-radius:10px;padding:8px 10px}.gapgrid span{display:block;font-size:11px;color:var(--mut)}.gapgrid b{font-size:18px}
 body{overflow-x:hidden}
 .rat{grid-template-columns:70px 1fr 54px}
 .mobonly{display:none}
@@ -655,7 +657,7 @@ function secProb(ctx,k){
 function pct(p){return lvl('video')>0?Math.round(p*100):Math.round(p*20)*5}
 function startRunPend(ctx,run){
   const mb=run===1?ctx.mb1:ctx.mb2;
-  S.pend={kind:'run',run,ctx,t0:mb.t,L:run===1?ctx.base:ctx.base2,k:0,delta:0,hist:[],prev:S.pend&&S.pend.kind==='run'?S.pend.hist:null};
+  S.pend={kind:'run',run,ctx,t0:mb.t,L:run===1?ctx.base:ctx.base2,k:0,delta:0,hist:[],prev:S.pend&&S.pend.hist?S.pend.hist:null};
 }
 function projection(p){
   const ctx=p.ctx;const me=C().id;
@@ -671,13 +673,17 @@ function resolveSection(ch,quiet){
   p.delta+=d;p.hist.push({n:pr.name,ch,txt,d:+d.toFixed(2),crash});p.k++;
   if(crash||p.k>=3)finishMyRun(crash,quiet);
 }
+function continueBreak(quiet){const p=S.pend;if(!p||p.kind!=='break')return;const ctx=p.ctx;const me=C().id;
+  if(ctx.mb2){startRunPend(ctx,2);if(!quiet){save();render();window.scrollTo(0,0)}return}
+  S.pend=null;const res=finalize(ctx);syncOther(ctx.g,ctx.i);SEL[ctx.g]=ctx.i;
+  if(!quiet){TAB='races';RV='detail';save();render();window.scrollTo(0,0)}}
 function finishMyRun(dnf,quiet){
   const p=S.pend;const ctx=p.ctx;const me=C().id;
   ctx.decs=(ctx.decs||[]).concat(p.hist.map(h=>SECCH[h.ch][0].split(' ')[0]));
   ctx.dec=ctx.decs.join('');
   if(p.run===1){
     if(dnf)ctx.out.push({id:me,st:ctx.two?'DNF1':'DNF',bib:ctx.mb1.bib});else{ctx.r1.push({id:me,bib:ctx.mb1.bib,t1:p.t0+p.delta});ctx.r1.sort((x,y)=>x.t1-y.t1)}
-    if(ctx.two){run2(ctx);if(ctx.mb2){startRunPend(ctx,2);if(!quiet){const k=ctx.r1.findIndex(x=>x.id===me);toast(`Nach Lauf 1: Platz ${k+1}`)}return}}
+    if(ctx.two){run2(ctx);if(!quiet){S.pend={kind:'break',ctx,hist:p.hist,dnf};return}if(ctx.mb2){startRunPend(ctx,2);return}}
   }else{
     if(dnf)ctx.out.push({id:me,st:'DNF2',t1:ctx.mb2.t1,bib:ctx.mb2.bib});else{const t2=p.t0+p.delta;ctx.r2.push({...ctx.mb2,t2,t:ctx.mb2.t1+t2})}
   }
@@ -697,7 +703,7 @@ function simNext(g,inter){
   simRace(g,i);return i;
 }
 // Automatisch zu Ende fahren (z. B. Saisonende): Standard-Risiko → Schlüsselstellen-Wahl
-function resolvePend(choice){const ch=choice==='att'?'att':choice==='safe'?'safe':'ctrl';let n=0;while(S.pend&&S.pend.kind==='run'&&n++<10)resolveSection(ch,true);if(S.pend&&S.pend.kind!=='run')S.pend=null;return null}
+function resolvePend(choice){const ch=choice==='att'?'att':choice==='safe'?'safe':'ctrl';let n=0;while(S.pend&&(S.pend.kind==='run'||S.pend.kind==='break')&&n++<12){if(S.pend.kind==='break')continueBreak(true);else resolveSection(ch,true)}if(S.pend&&S.pend.kind!=='run')S.pend=null;return null}
 function applyReal(fin,real,two){
   const times=fin.map(x=>x.t).sort((a,b)=>a-b);
   const fixed=Object.entries(real.fix).map(([n,p])=>({x:fin.find(f=>BYID[f.id].name===n),p})).filter(o=>o.x);
@@ -878,18 +884,21 @@ function careerDay(started,xp,what,gap=3){
   c.trainPending={day:!started,hurt,what,xp,sum};
 }
 function trainGain(opt,int){
-  const c=C();const a=BYID[c.id];const T=TINT[int];const tm=(1+0.2*lvl(opt==='GS'||opt==='SL'?'tech':'speed'))*ageF(a)*(c.trainPending&&c.trainPending.day?1.4:1)*(S[c.g].inj[c.id]>0&&DN[opt]?0.3:1);
+  const c=C();const a=BYID[c.id];const T=TINT[int];const dayF=Math.max(0.4,1-0.2*((c.trainPending&&c.trainPending.n)||0));const tm=dayF*(1+0.2*lvl(opt==='GS'||opt==='SL'?'tech':'speed'))*ageF(a)*(c.trainPending&&c.trainPending.day?1.4:1)*(S[c.g].inj[c.id]>0&&DN[opt]?0.3:1);
   if(DN[opt]){const room=Math.max(0,a.pot-a.r[opt]);return T.g*tm*clamp(room/(a.pot-60),0.06,1)}
-  const v=opt==='kond'?c.kond:c.mental;return T.s*(1+0.3*lvl(opt==='kond'?'kond':'mental'))*clamp((100-v)/50,0.15,1);
+  const v=opt==='kond'?c.kond:c.mental;return Math.max(0.4,1-0.2*((c.trainPending&&c.trainPending.n)||0))*T.s*(1+0.3*lvl(opt==='kond'?'kond':'mental'))*clamp((100-v)/50,0.15,1);
 }
 function doTrain(opt){
   const c=C();const a=BYID[c.id];const tp=c.trainPending;if(!tp)return;
-  if(opt==='reg'){c.fat=clamp(c.fat-18*(1+0.15*lvl('physio')),0,100);c.tlog=[`${tp.what}: 🛌 Regeneration`].concat(c.tlog||[]).slice(0,30);toast('🛌 Erholt – Fitness steigt');}
+  tp.done=tp.done||[];
+  if(opt==='reg'){if(tp.reg)return;tp.reg=1;c.fat=clamp(c.fat-18*(1+0.15*lvl('physio')),0,100);c.tlog=[`${tp.what}: 🛌 Regeneration`].concat(c.tlog||[]).slice(0,30);tp.done.push('🛌 Regeneration');toast('🛌 Erholt – Fitness steigt');}
   else{const T=TINT[TI];if((c.xp||0)<T.c)return;c.xp-=T.c;const gn=trainGain(opt,TI);
     if(DN[opt])a.r[opt]=+Math.min(a.pot,a.r[opt]+gn).toFixed(2);else if(opt==='kond')c.kond=clamp(c.kond+gn,0,100);else c.mental=clamp(c.mental+gn,0,100);
     if(S[c.g].inj[c.id]>0)c.fat=0;else c.fat=clamp(c.fat+T.f*(1-0.08*lvl('kond')),0,100);
-    const msg=`${TOPT[opt]} ${T.n}: +${gn.toFixed(2)} (−${T.c} XP)`;c.tlog=[`${tp.what}: ${msg}`].concat(c.tlog||[]).slice(0,30);toast('🏋️ '+msg)}
-  c.trainPending=null;save();render();
+    const msg=`${TOPT[opt]} ${T.n}: +${gn.toFixed(2)} (−${T.c} XP)`;c.tlog=[`${tp.what}: ${msg}`].concat(c.tlog||[]).slice(0,30);tp.done.push(msg);tp.n=(tp.n||0)+1;toast('🏋️ '+msg)}
+  save();render();
+}
+function endDay(){const c=C();if(!c.trainPending)return;c.trainPending=null;save();render();window.scrollTo(0,0)
 }
 function autoRehab(){const c=C();let n=0;while(S[c.g].inj[c.id]>0&&nextIdx(c.g)>=0&&n<60){if(c.trainPending)doTrainSilent();const r=step();if(r==='pause')break;n++}if(c.trainPending&&S[c.g].inj[c.id]>0)doTrainSilent();save();render()}
 function doTrainSilent(){const c=C();const tp=c.trainPending;if(!tp)return;
@@ -1188,7 +1197,7 @@ function rTop(){
   const ni=nextIdx(g);const done=ni<0;const pd=!!S.pend;const inj=S[g].inj[c.id]>0;
   const act=done?`<button class="btn gold" data-act="season">🗓 Saison ${S.season+1}/${String(S.season+2).slice(2)} starten</button>`
     :pd?`<button class="btn racebtn" data-tab="home">🎿 Zu deinem Lauf</button>`
-    :c.trainPending?`<button class="btn gold" data-tab="home">🏋️ Training wählen</button>`
+    :c.trainPending?`<button class="btn gold" data-tab="home">🏋️ Zum Training</button>`
     :`<button class="btn pri" data-act="one">▶ Nächster Renntag</button><button class="btn" data-act="live" title="Nächstes Rennen live">📺 Live</button>`;
   return `<header class="top"><div class="who">
     <div class="avatar">${flag(a.nat)}</div>
@@ -1217,7 +1226,7 @@ function rHome(){
   let h='';
   // ---- Renntag ----
   if(ph==='race'){const x=cal(g)[S.pend.ctx.i];
-    h+=phaseBar('race',`<b>RENNTAG</b> · ${DN[x[3]]} in ${esc(x[1])} · Startnummer ${S.pend.ctx.mb1.bib}`);
+    h+=phaseBar('race',`<b>${S.pend.kind==='break'?'PAUSE':'RENNTAG'}</b> · ${DN[x[3]]} in ${esc(x[1])} · ${S.pend.kind==='break'?'nach dem 1. Durchgang':S.pend.run===2?'2. Durchgang':'Startnummer '+S.pend.ctx.mb1.bib}`);
     h+=pendCard();
     h+=`<div class="g3"><div class="card"><h2>Körper & Kopf</h2>${bar('Fitness',100-c.fat,'f2')}${bar('Mental',c.mental)}</div>
       <div class="card"><h2>Tipp</h2><p class="mut small">Angriff lohnt sich, wenn du Zeit gutmachen musst – mit niedriger Fitness oder auf schweren Stellen wird's gefährlich. Ein Sturz kostet Punkte und kann verletzen.</p></div>
@@ -1282,8 +1291,11 @@ function trainCard(c){
    <div class="xpline">${tp.xp.map(([t,v])=>`<span class="pill">+${v} ${esc(t)}</span>`).join(' ')}</div>
    <p class="lead">Du hast <b class="warn">${c.xp||0} XP</b>. ${tp.day&&!tp.hurt?'Ganzer Trainingstag: <b>+40 % Trainingseffekt</b>.':''}${tp.hurt?' Verletzt wirkt Disziplintraining nur zu 30 %.':''}</p>
    <h3>Intensität</h3><div class="opt">${Object.entries(TINT).map(([k,T])=>`<button class="chip ${TI===k?'on':''}" data-int="${k}">${T.n} · ${T.c} XP${T.f?` · Müdigkeit +${T.f}`:''}</button>`).join('')}</div>
-   <h3>Was trainierst du?</h3><div class="tgrid">${opts}
-   <button class="tbtn reg" data-train="reg"><b>🛌 Regeneration</b><span class="mut small">0 XP · Fitness +${Math.round(18*(1+0.15*lvl('physio')))}</span></button></div>
+   <h3>Was trainierst du?${tp.n?` <span class="mut small">(Einheit ${tp.n+1} heute · Effekt ${Math.round(Math.max(0.4,1-0.2*tp.n)*100)} %)</span>`:''}</h3><div class="tgrid">${opts}
+   <button class="tbtn reg" data-train="reg" ${tp.reg?'disabled':''}><b>🛌 Regeneration</b><span class="mut small">${tp.reg?'heute schon erledigt':`0 XP · Fitness +${Math.round(18*(1+0.15*lvl('physio')))}`}</span></button></div>
+   ${(tp.done||[]).length?`<h3>Heute erledigt (${tp.done.length})</h3><div class="xpline">${tp.done.map(d=>`<span class="pill">✓ ${esc(d)}</span>`).join('')}</div>`:''}
+   <p class="mut small">Du kannst so viele Einheiten machen, wie deine XP reichen. Jede weitere Einheit am selben Tag bringt 20 % weniger und macht müde. Regeneration einmal pro Tag.</p>
+   <p class="row-btn"><button class="btn pri" data-act="endday">✓ Trainingstag abschließen</button></p>
    ${tp.hurt?'<p style="margin-top:10px"><button class="btn sm" data-act="autoreha">⏩ Reha automatisch bis zum Comeback</button></p>':''}</div>`;
 }
 function bar(l,v,cls=''){return `<div class="rat"><span class="mut small">${l}</span><div class="barwrap"><i class="${cls}" style="width:${clamp(v,0,100)}%"></i></div><span class="r">${Math.round(v)}</span></div>`}
@@ -1351,7 +1363,35 @@ function rTrain(){
   else body=rivalTeam(c,a);
   return `<div class="subnav">${chips.map(([k,t])=>`<button class="chip ${TST===k?'on':''}" data-tst="${k}">${t}</button>`).join('')}</div>${body}`;
 }
+
+function breakCard(){
+  const p=S.pend;const ctx=p.ctx;const c=cal(ctx.g)[ctx.i];const me=C().id;const wx=WX.find(w=>w.k===ctx.wx);
+  const r1=ctx.r1;const k=r1.findIndex(x=>x.id===me);const lead=r1[0]?r1[0].t1:0;const my=k>=0?r1[k].t1:null;
+  const dnq=k>=30,dnf=k<0;
+  const gap=i=>r1[i]?(my-r1[i].t1):0;
+  let head,sub;
+  if(dnf){head='💥 Ausgeschieden';sub='Für dich ist das Rennen vorbei – der 2. Durchgang läuft ohne dich.'}
+  else if(dnq){head=`Platz ${k+1} – nicht qualifiziert`;sub=`Auf Platz 30 fehlten ${gap(29).toFixed(2)} s. Nur die besten 30 fahren den 2. Lauf.`}
+  else{head=`Platz ${k+1}${k?` · +${(my-lead).toFixed(2)} s`:' · Bestzeit!'}`;sub=`Du bist im Finale und startest im 2. Lauf als ${ctx.mb2.o2}. von ${Math.min(30,r1.length)} (umgekehrte Reihenfolge – die Führenden zuletzt).`}
+  const rows=[];const rv=C().rival;
+  r1.slice(0,10).forEach((x,i)=>rows.push([i,x]));
+  if(k>=10)rows.push([k,r1[k]]);
+  const ri=r1.findIndex(x=>x.id===rv);if(ri>=10&&ri!==k)rows.push([ri,r1[ri]]);
+  rows.sort((a,b)=>a[0]-b[0]);
+  const gaps=!dnf&&!dnq?`<div class="gapgrid">
+    ${k>0?`<div><span>zur Führung</span><b>+${(my-lead).toFixed(2)}</b></div>`:`<div><span>Vorsprung</span><b class="ok">−${r1[1]?(r1[1].t1-my).toFixed(2):'0.00'}</b></div>`}
+    ${k>2?`<div><span>aufs Podest</span><b>+${gap(2).toFixed(2)}</b></div>`:''}
+    ${k>9?`<div><span>zu den Top 10</span><b>+${gap(9).toFixed(2)}</b></div>`:''}
+    ${r1[30]?`<div><span>Polster auf Platz 31</span><b>${(r1[30].t1-my).toFixed(2)}</b></div>`:''}</div>`:'';
+  return `<div class="card break-card"><div class="eyebrow">⏸ Pause nach dem 1. Durchgang · ${DN[ctx.disc]} ${flag(c[2])} ${esc(c[1])} · ${wx.n}</div>
+   <h2 class="big">${head}</h2><p class="mut">${sub}</p>${gaps}
+   ${p.hist&&p.hist.length?`<h3>Dein 1. Lauf</h3><div class="xpline">${p.hist.map(h=>`<span class="pill">${SECCH[h.ch][0].split(' ')[0]} ${esc(h.n)} <b class="${h.d<0?'ok':'bad'}">${h.d<0?'':'+'}${h.d.toFixed(2)}</b></span>`).join('')}</div>`:''}
+   <h3>Zwischenstand</h3><table>${rows.map(([i,x])=>`<tr ${trc(x.id,'p'+(i+1))}><td>${i+1}.</td><td>${nm(x.id)}${x.id===rv?' <span class="pill">Rivale</span>':''}</td><td class="r mut">${i?'+'+(x.t1-lead).toFixed(2):fmtT(x.t1)}</td></tr>`).join('')}</table>
+   <p class="mut small">${ctx.out.filter(o=>o.st==='DNF1').length} Ausfälle im 1. Lauf · ${Math.min(30,r1.length)} im Finale</p>
+   <p class="row-btn"><button class="btn racebtn" data-act="brk">${ctx.mb2?'▶ Weiter zum 2. Durchgang':'🏁 Rennen beenden'}</button></p></div>`;
+}
 function pendCard(){
+  if(S.pend.kind==='break')return breakCard();
   const p=S.pend;const ctx=p.ctx;const c=cal(ctx.g)[ctx.i];const wx=WX.find(w=>w.k===ctx.wx);const me=C();
   const names=secNames(ctx);const pr=secProb(ctx,p.k);const pj=projection(p);const L=p.L;
   const runLbl=ctx.two?(p.run===1?'1. Lauf':'2. Lauf'):'Dein Lauf';
@@ -1457,7 +1497,7 @@ function bind(){
     if(a==='next')goNext();if(a==='one')oneRace();if(a==='live')goLive();if(a==='sim')oneRace();
     if(a==='faster'&&LIVE)LIVE.speed=Math.max(80,LIVE.speed/2);
     if(a==='skip'&&LIVE){clearTimeout(LIVE.timer);LIVE=null;render()}
-    if(a==='season')nextSeason();if(a==='secauto'){let n=0;while(S.pend&&n++<10)resolveSection('ctrl');save();render()}if(a==='autoreha')autoRehab();
+    if(a==='season')nextSeason();if(a==='endday')endDay();if(a==='brk')continueBreak();if(a==='secauto'){let n=0;while(S.pend&&n++<10)resolveSection('ctrl');save();render()}if(a==='autoreha')autoRehab();
     if(a==='newcareer'){CF.name=$('#cfName').value;CF.nat=$('#cfNat').value;newCareer();TAB='home';render()}
     if(a==='retire'){if(e.dataset.arm)retireCareer();else{e.dataset.arm=1;e.textContent='⚠ Wirklich beenden? Nochmal klicken'}}
     if(a==='wipe'){if(e.dataset.arm){S=fresh();rebuild();initReal();render()}else{e.dataset.arm=1;e.textContent='⚠ Alles löschen? Nochmal klicken'}}});
