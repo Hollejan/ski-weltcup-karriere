@@ -210,6 +210,32 @@ body[data-phase=race] .break-card .row-btn .btn,body[data-phase=race] .race-card
   body[data-phase=race] .break-card .row-btn,body[data-phase=race] .race-card:not(.hud) .row-btn{left:50%;right:auto;transform:translateX(-50%);width:min(900px,100%)}
   .hud-main{grid-template-columns:1fr 180px}.hud-svg .runsvg{max-height:260px}}
 .toast{pointer-events:none}body[data-phase=race] .toast{top:calc(10px + env(safe-area-inset-top));bottom:auto!important;transform:translateY(-160px)}body[data-phase=race] .toast.on{transform:none}
+
+body[data-phase=race] main{padding:0!important;max-width:none}
+.hud{height:calc(100dvh - var(--cbh,176px));overflow:hidden;display:flex;flex-direction:column;border-radius:0!important;margin:0;padding:12px 14px 12px!important;border-left:0!important;border-right:0!important}
+.hud .lt{margin:-12px -14px 10px;min-height:64px}
+.hud .lt-name b{font-size:28px}.hud .lt-name span{font-size:14px}.hud .lt-bib{font-size:30px;min-width:64px}
+.hud-main{flex:1 1 auto;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(130px,1fr) auto;gap:10px;min-height:0}
+.hud>*:not(.hud-main){flex-shrink:0}
+.hud-svg{min-height:120px;position:relative}
+.hud-svg .runsvg{position:absolute;inset:0;width:100%;height:100%;max-height:none;max-width:none;margin:0;filter:drop-shadow(0 6px 18px rgba(0,0,0,.35))}
+.hud-side{grid-template-columns:1fr 1fr;gap:8px}
+.hud-box{padding:8px 12px;border-left-width:5px}.hud-box span{font-size:13px}.hud-box b{font-size:38px}.hud-box b.small2{font-size:22px}.hud-box em{font-size:18px}
+.hud-last{font-size:20px;padding:10px 12px;margin-top:10px}
+.hud-info .prev{font-size:14.5px;padding:7px 10px}
+.hud-sec{margin-top:10px}.hud-sec b{font-size:28px}.hud-sec span{font-size:14px}
+.choicebar{gap:8px;padding:10px 10px calc(10px + env(safe-area-inset-bottom))}
+.choicebar .choice{min-height:118px;padding:12px 10px;gap:4px}
+.choicebar .choice b{font-size:21px}
+.choicebar .choice span{font-size:13.5px}.choicebar .choice span:nth-of-type(1){font-size:22px}
+.cb-auto{font-size:14px;padding:4px}
+.runsvg .spray{animation:spray .5s linear infinite}.runsvg .s2{animation-delay:.15s}.runsvg .s3{animation-delay:.3s}
+@keyframes spray{0%{opacity:.95;transform:translate(0,0)}100%{opacity:0;transform:translate(-8px,-3px)}}
+@media (prefers-reduced-motion:reduce){.runsvg .spray{animation:none}}
+@media(max-height:760px){.hud-info .prev:not(.press){display:none}.hud-box b{font-size:28px}.hud-box{padding:5px 10px}.hud-last{font-size:17px;padding:7px 10px}.hud .lt{min-height:54px}.hud .lt-name b{font-size:23px}.choicebar .choice{min-height:100px}.hud-sec b{font-size:22px}}
+@media(max-width:420px){.choicebar .choice b{font-size:17px}.choicebar .choice span:nth-of-type(1){font-size:19px}.choicebar .choice span{font-size:12.5px}.hud-box b{font-size:32px}.hud-sec b{font-size:24px}}
+@media(min-width:701px){.hud{max-width:900px;margin:0 auto;border-radius:6px!important}.hud-main{grid-template-columns:1fr 240px;grid-template-rows:1fr}.hud-side{grid-template-columns:1fr;align-content:start}}
+.perkgrid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))!important}.perkgrid .offer{padding:10px;gap:4px}.perkgrid .offer b{font-family:var(--cond);font-size:16px}@media(max-width:700px){.perkgrid{grid-template-columns:1fr 1fr!important;gap:8px}.perkgrid .offer .btn{font-size:13px;padding:5px 8px}}
 body{overflow-x:hidden}
 .rat{grid-template-columns:70px 1fr 54px}
 .mobonly{display:none}
@@ -739,7 +765,7 @@ function perf(g,a,disc,vnat,wx,bib,tr){
     mean+=-wearPen()-Math.max(0,(c.load||0)-60)*0.04+lvl('service')*0.3+skiBonus(disc)-(c.skiAdapt||0)*0.08-Math.max(0,c.fat-35)*0.07-(c.rust||0);
     if(tr)mean+=Math.min(0.7,0.2*((c.trk||{})[tr.key]||0)*(1+0.5*lvl('video')));
     if(tr&&tr.night)mean+=(c.mental-50)/25+(hasPerk('night')?0.5:0);
-    if(hasPerk('glide')&&(disc==='DH'||disc==='SG')&&tr&&tr.dnf<1.1)mean+=0.5;if(hasPerk('home')&&a.nat===vnat)mean+=0.5;
+    if(hasPerk('glide')&&(disc==='DH'||disc==='SG')&&tr&&tr.dnf<1.1)mean+=0.5;if(hasPerk({SL:'slf',GS:'gsf',DH:'dhf',SG:'sgf'}[disc]))mean+=0.4;if(hasPerk('snow')&&['snow','soft'].includes(wx.k))mean+=0.5;if(hasPerk('veteran')&&age(a)>=30)mean+=0.6;if(hasPerk('home')&&a.nat===vnat)mean+=0.5;
     sig*=1-(c.mental-50)/250;
     if(rk==='safe'){mean-=0.9;sig*=0.9}if(rk==='att'){mean+=1.2;sig*=1.12}}
   return mean+gauss()*sig;
@@ -801,7 +827,7 @@ function secProb(ctx,k,bonus=0){
   const diff=74+(tr.dnf-1)*14+hash(tr.key+name)%7+(ctx.disc==='SL'?2:0);
   const trk=Math.min(3,(c.trk||{})[tr.key]||0);
   const b=0.5+0.022*(a.r[ctx.disc]-diff)+(c.mental-50)*0.004+lvl('mental')*0.03-Math.max(0,c.fat-35)*0.006+trk*0.03*(1+0.5*lvl('video'))-(wx.s-1)*0.5-(c.rust||0)*0.03+(tr.night?(c.mental-50)*0.003:0);
-  let x=b+bonus-Math.max(0,(c.load||0)-60)*0.004-(S.pend&&S.pend.kind==='run'?pressPen(ctx,S.pend.run):0)+(ctx.setup?ctx.setup.pa:0)+(c.motiv?0.05:0)+(hasPerk('ice')&&tr.dnf>=1.3?0.04:0)+(hasPerk('finish')&&k===2?0.08:0)+(hasPerk('nerve')&&S.pend&&S.pend.run===2?0.05:0)+(hasPerk('weather')?(wx.s-1)*0.25:0);
+  let x=b+bonus-Math.max(0,(c.load||0)-60)*0.004-(S.pend&&S.pend.kind==='run'?pressPen(ctx,S.pend.run):0)+(ctx.setup?ctx.setup.pa:0)+(c.motiv?0.05:0)+(hasPerk('ice')&&tr.dnf>=1.3?0.04:0)+(hasPerk('finish')&&k===2?0.08:0)+(hasPerk('start')&&k===0?0.08:0)+(hasPerk('nerve')&&S.pend&&S.pend.run===2?0.05:0)+(hasPerk('weather')?(wx.s-1)*0.25:0);
   const ln=ctx.lines&&ctx.lines[k];
   return{pA:clamp(x+(ln==='att'?0.12:0),0.1,0.8),pK:clamp(x+0.3+(ln==='ctrl'?0.05:ln==='att'?0.02:0),0.45,0.95),diff,name};
 }
@@ -880,7 +906,7 @@ function afterRace(g,i,res,disc,ctx){
   res.out.filter(o=>o.st.startsWith('DNF')).forEach(o=>{
     let p=disc==='DH'?.12:disc==='SG'?.08:.03;const tr=track(c[1],disc);p*=Math.sqrt(tr.dnf);if(isMe(o.id))p*=1+Math.max(0,(C().load||0)-50)/40;
     if(isMe(o.id)){p*=1+Math.max(0,C().fat-50)/40;if(C().reinj>0)p*=2}
-    if(isMe(o.id))p*=1+(C().body||0)/80;if(rnd()<p){if(isMe(o.id))injureMe(g,disc,c[1]);else{const n=2+Math.floor(rnd()*(disc==='DH'||disc==='SG'?14:6));st.inj[o.id]=n;
+    if(isMe(o.id))p*=(1+(C().body||0)/80)*(hasPerk('fall')?0.7:1);if(rnd()<p){if(isMe(o.id))injureMe(g,disc,c[1]);else{const n=2+Math.floor(rnd()*(disc==='DH'||disc==='SG'?14:6));st.inj[o.id]=n;
       st.news.unshift(`🚑 ${BYID[o.id].name} stürzt in ${c[1]} – fällt ca. ${n} Rennen aus.`)}}});
   const w=res.fin[0];if(w){S.cw=S.cw||{};S.cw[w.id]=(S.cw[w.id]||0)+1}if(w)st.news.unshift(`🏆 ${c[1]} (${DN[disc]}): Sieg für ${BYID[w.id].name} ${flag(BYID[w.id].nat)}`);
   npcDevelop(g);
@@ -959,7 +985,7 @@ function careerAfterRace(g,i,res,disc,ctx){
     spend('Reisen',['USA','CAN'].includes(cal(g)[i][2])?3500:1200);spend('Material & Service',600+500*lvl('service'));
     unlock('start');c.starts0++;
     c.trk=c.trk||{};c.trk[res.tk]=(c.trk[res.tk]||0)+1;
-    c.wear=clamp((c.wear||0)+5-lvl('service'),0,100);bodyAdd(0.5+Math.max(0,age(BYID[me])-27)*0.12);
+    c.wear=clamp((c.wear||0)+Math.max(1,5-lvl('service')-lvl('skitest')),0,100);bodyAdd(0.5+Math.max(0,age(BYID[me])-27)*0.12);
     const tr=track(venue,disc);
     loadAdd(disc==='DH'||disc==='SG'?7:6);const pf=(disc==='DH'||disc==='SG'?19:15)*(tr.tire||1)*(1.3-c.kond/100)*(1-0.08*lvl('kond'))*(hasPerk('kond')?0.85:1);c.fat=clamp(c.fat+pf,0,100);if(c.skiAdapt)c.skiAdapt--;
     c.rust=Math.max(0,(c.rust||0)*0.75-0.1);c.reinj=Math.max(0,(c.reinj||0)-1);
@@ -1051,10 +1077,10 @@ function careerDay(started,xp,what,gap=3){
   const c=C();if(!c.lastDay||c.lastDay.what!==undefined)c.lastDay=c.lastDay||{};
   if(!started)spend('Training',300);spend('Gehälter',Math.round(salaries()/40));c.lastDay.cost=c.dayCost;c.lastDay.what=what;checkDebt();const g=c.g;const hurt=S[g].inj[c.id]>0;
   if(!started){xp=xp.filter(x=>!x[0].startsWith('Training'));xp.push([hurt?'Reha-Tag':'Trainingstag',hurt?4:10])}
-  if(DF().xp!==1)xp=xp.map(([t,v])=>[t,Math.round(v*DF().xp)]);
+  {const xm=DF().xp*(hasPerk('xpboost')?1.15:1);if(xm!==1)xp=xp.map(([t,v])=>[t,Math.round(v*xm)])}
   const sum=xp.reduce((n,x)=>n+x[1],0);c.xp=(c.xp||0)+sum;
   c.pop=Math.max(0,(c.pop||10)-0.25);
-  if(!started)loadAdd(-3);if(standings(c.g)[0]&&standings(c.g)[0].id===c.id&&standings(c.g)[1]){c.fat=clamp(c.fat+3,0,100)}const hd=c.sp&&c.sp.head;c.fat=hurt?0:clamp(c.fat-(clamp(2.2*gap,3,16)+(hd&&hd.perk==='fit'?4:0))*(1+0.15*lvl('physio'))*(1-Math.max(0,(c.load||0)-50)/100)*(1-(c.body||0)/250),0,100);
+  if(!started)loadAdd(-3);if(standings(c.g)[0]&&standings(c.g)[0].id===c.id&&standings(c.g)[1]){c.fat=clamp(c.fat+3,0,100)}const hd=c.sp&&c.sp.head;c.fat=hurt?0:clamp(c.fat-(clamp(2.2*gap,3,16)+(hd&&hd.perk==='fit'?4:0))*(1+0.15*lvl('physio'))*(hasPerk('recover')?1.2:1)*(1-Math.max(0,(c.load||0)-50)/100)*(1-(c.body||0)/250),0,100);
   c.trainPending={day:!started,hurt,what,xp,sum};
 }
 function trainGain(opt,int){
@@ -1081,8 +1107,8 @@ function doTrainSilent(){const c=C();const tp=c.trainPending;if(!tp)return;
 
 
 // ---------- Finanzen ----------
-function earn(cat,v,prov){const c=C();if(!v)return;c.money+=v;c.fin=c.fin||{inc:{},exp:{}};c.fin.inc[cat]=(c.fin.inc[cat]||0)+v;if(prov){spend('Steuern (25 %)',Math.round(v*0.25))}if(prov)spend('Manager (10 %)',Math.round(v*0.1))}
-function spend(cat,v){const c=C();if(!v)return;if(cat!=='Ablösen'&&cat!=='Trainingslager')v=Math.round(v*DF().cost);c.money-=v;c.fin=c.fin||{inc:{},exp:{}};c.fin.exp[cat]=(c.fin.exp[cat]||0)+v;(c.dayCost=c.dayCost||[]).push([cat,v])}
+function earn(cat,v,prov){const c=C();if(!v)return;if(cat==='Sponsoren'&&hasPerk('sponsor'))v=Math.round(v*1.15);c.money+=v;c.fin=c.fin||{inc:{},exp:{}};c.fin.inc[cat]=(c.fin.inc[cat]||0)+v;if(prov){spend('Steuern (25 %)',Math.round(v*0.25))}if(prov)spend('Manager (10 %)',Math.round(v*0.1))}
+function spend(cat,v){const c=C();if(!v)return;if(hasPerk('saver')&&(cat==='Reisen'||cat==='Material & Service'))v=Math.round(v*0.8);if(cat!=='Ablösen'&&cat!=='Trainingslager')v=Math.round(v*DF().cost);c.money-=v;c.fin=c.fin||{inc:{},exp:{}};c.fin.exp[cat]=(c.fin.exp[cat]||0)+v;(c.dayCost=c.dayCost||[]).push([cat,v])}
 function dailyCost(){return Math.round(salaries()/40)+600+500*lvl('service')+1200}
 function checkDebt(){const c=C();if(c.money>=0)return;const ids=Object.entries(c.staff||{}).sort((a,b)=>SAL[SBY[b[1]].l]-SAL[SBY[a[1]].l]);
   if(ids.length){const[r,id]=ids[0];delete c.staff[r];const m=`💸 Konto im Minus – ${SBY[id].name} (${ROLES[r].n}) kündigt`;clog(m);toast(m)}}
@@ -1105,7 +1131,7 @@ const STAFF=[['t1','tech','Hannes Wieser',1],['t2','tech','Pierre Lacombe',2],['
 const SBY={};STAFF.forEach(s=>SBY[s.id]=s);
 const FEE=[0,15000,40000,100000],SAL=[0,20000,50000,110000];
 function lvl(role){const c=C();if(!c||!c.staff||!c.staff[role])return 0;return SBY[c.staff[role]].l}
-function hire(id){const c=C();const s=SBY[id];if(c.money<FEE[s.l])return;spend('Ablösen',FEE[s.l]);const old=c.staff[s.role];c.staff[s.role]=id;
+function hire(id){const c=C();const s=SBY[id];if(c.money<FEE[s.l]||!staffOk(s))return;spend('Ablösen',FEE[s.l]);const old=c.staff[s.role];c.staff[s.role]=id;
   clog(`👔 ${s.name} als ${ROLES[s.role].n} verpflichtet (Ablöse ${fmtCHF(FEE[s.l])}, Gehalt ${fmtCHF(SAL[s.l])}/Saison)${old?` – ${SBY[old].name} geht`:''}`);toast(`👔 ${s.name} ist an Bord`);save();render()}
 function fire(role){const c=C();const s=SBY[c.staff[role]];delete c.staff[role];clog(`👋 ${s.name} entlassen`);save();render()}
 function salaries(){const c=C();const m=1+({A:0.5,B:0.2}[c.kader]||0)+(c.pop||0)/200;return Math.round(Object.values(c.staff||{}).reduce((n,id)=>n+SAL[SBY[id].l],0)*m)}
@@ -1118,7 +1144,7 @@ const HEADS=[['Alpenmilch','points','Prämie pro Weltcuppunkt'],['Gipfelbank','b
  ['Schneekönig Versicherung','xp','+3 XP pro Zielankunft'],['Hüttenzauber Getränke','points','Prämie pro Weltcuppunkt'],['Talblick Hotels','base','Hohes Fixum'],['Föhnwind Mobility','xp','+3 XP pro Zielankunft']];
 function statusTier(){const c=C();let t={A:3,B:2,C:1}[c.kader];if(c.pods>0)t=Math.min(3,t+1);return t}
 function makeOffers(){
-  const c=C();const t=statusTier();const fame=(1+Math.min(1.5,c.wins*0.05+c.pods*0.02))*(0.8+(c.pop||10)/100*0.8);const offers=[];
+  const c=C();const t=statusTier();const fame=(1+Math.min(1.5,c.wins*0.05+c.pods*0.02))*(0.8+(c.pop||10)/100*0.8)*(1+0.12*lvl('agent'));const offers=[];
   const skis=shuffle(SKI.filter(s=>s[2]<=t&&s[2]>=t-1&&(!c.sp.ski||c.sp.ski.name!==s[0]))).slice(0,3);
   skis.forEach(s=>{const base=Math.round(([0,20000,60000,160000][s[2]]*(0.8+rnd()*0.5)*fame)/1000)*1000;
     const o={type:'ski',name:s[0],nat:s[1],tier:s[2],mat:s[3],base,pod:[0,4000,8000,15000][s[2]],years:1+Math.floor(rnd()*3)};makeTarget(o,s[2]);offers.push(o)});
@@ -1158,7 +1184,7 @@ const PERKS={
  learn:['📚 Lernmaschine','+10 % Trainingseffekt']};
 const hasPerk=k=>{const c=C();return !!(c&&c.perks&&c.perks[k])};
 const perkCost=()=>{const c=C();return 60+30*Object.keys(c.perks||{}).length};
-function buyPerk(k){const c=C();c.perks=c.perks||{};const cost=perkCost();if(c.perks[k]||(c.xp||0)<cost)return;c.xp-=cost;c.perks[k]=S.season;
+function buyPerk(k){const c=C();c.perks=c.perks||{};const cost=perkCost();if(c.perks[k]||(c.xp||0)<cost||!perkOk(k))return;c.xp-=cost;c.perks[k]=S.season;
   clog(`⭐ Fähigkeit freigeschaltet: ${PERKS[k][0]} (−${cost} XP)`);toast(`⭐ ${PERKS[k][0]} freigeschaltet`);save();render()}
 
 // ---------- Beliebtheit & Presse ----------
@@ -1199,7 +1225,7 @@ const WAX={cold:'❄️ Kalt/Trocken',uni:'🌤 Universal',warm:'💧 Warm/Nass'
 const SETUP={agg:['⚡ Aggressiv','schnell auf Eis & hartem Schnee, heikel bei weichen Verhältnissen'],bal:['⚖️ Ausgewogen','passt immer ein bisschen'],soft:['🌊 Ruhig/Weich','stark bei Neuschnee, weicher Piste & schlechter Sicht']};
 function waxTruth(ctx){if(ctx.waxT)return ctx.waxT;const m=+cal(ctx.g)[ctx.i][0].slice(0,2);let t=ctx.wx==='soft'?'warm':ctx.wx==='snow'||ctx.wx==='fog'?'uni':[12,1,2].includes(m)?'cold':'uni';
   if(rnd()<.2){const k=WAXO.indexOf(t);t=WAXO[clamp(k+(rnd()<.5?-1:1),0,2)]}ctx.waxT=t;
-  const acc=[0.5,0.7,0.85,0.95][lvl('service')];ctx.waxTip=rnd()<acc?t:pick(WAXO.filter(x=>x!==t));return t}
+  const acc=Math.min(0.99,[0.5,0.7,0.85,0.95,0.98][lvl('service')]+0.05*lvl('skitest'));ctx.waxTip=hasPerk('wax')||rnd()<acc?t:pick(WAXO.filter(x=>x!==t));return t}
 function hardSnow(ctx){const{tr}=ctxO(ctx);return !['soft','snow','fog'].includes(ctx.wx)||tr.dnf>=1.4}
 function applySetup(ctx,setup,wax){
   const t=waxTruth(ctx);const dist=Math.abs(WAXO.indexOf(t)-WAXO.indexOf(wax));const hard=hardSnow(ctx);
@@ -1242,7 +1268,7 @@ const DIFF={easy:{n:'🟢 Leicht',d:'Schwächere Gegner, mehr XP, günstiger',op
 const DF=()=>{const c=C();return DIFF[(c&&c.diff)||'norm']};
 
 // ---------- Saisonbelastung ----------
-function loadAdd(v){const c=C();c.load=clamp((c.load||0)+v,0,100)}
+function loadAdd(v){const c=C();if(v>0)v*=(hasPerk('iron')?0.8:1)*(1-0.12*lvl('nutri'));c.load=clamp((c.load||0)+v,0,100)}
 function loadLbl(l){return l>=80?'🔴 ausgebrannt':l>=60?'🟠 hoch':l>=40?'🟡 spürbar':'🟢 frisch'}
 
 // ---------- Gegner entwickeln sich in der Saison ----------
@@ -1269,7 +1295,7 @@ function pressure(ctx,run){
   if(hunted(g,ctx.disc)){p+=1;r.push('Gejagte:r – alle wollen dich schlagen')}
   return{p:Math.min(4,p),r};
 }
-function pressPen(ctx,run){const c=C();const{p}=pressure(ctx,run);return p*0.03*clamp(1-(c.mental-50)/50,0,1.6)*(hasPerk('nerve')?0.5:1)}
+function pressPen(ctx,run){const c=C();const{p}=pressure(ctx,run);return p*0.03*clamp(1-(c.mental-50)/50,0,1.6)*(hasPerk('nerve')?0.5:1)*(hasPerk('focus')?0.5:1)}
 
 // ---------- Europacup (ohne Kader) ----------
 function ecRace(disc){
@@ -1303,7 +1329,7 @@ function npcB(g,disc){const key=g+disc+S.season+doneCount(g);if(NPCB.k===key)ret
   const arr=Object.entries(wcsl(g,disc)).sort((a,b)=>b[1]-a[1]);const m={};arr.forEach(([id],k)=>{m[id]=k<5?2.0:k<15?1.3:k<30?0.7:0.2});NPCB={k:key,m};return m}
 function hunted(g,disc){const c=C();if(!c||c.g!==g)return false;const key=g+disc+S.season+doneCount(g);if(HUNT.k!==key){HUNT={k:key,v:{}}}
   if(HUNT.v[disc]==null){const s=standings(g,disc),o=standings(g);HUNT.v[disc]=!!((s[0]&&s[0].id===c.id&&s[1])||(o[0]&&o[0].id===c.id&&o[1]))}return HUNT.v[disc]}
-function npcExtra(g,a,disc){let b=(npcB(g,disc)[a.id]||0);if(hunted(g,disc)){const t=standings(g,disc).slice(0,10);if(t.some(o=>o.id===a.id))b+=1.0}return b}
+function npcExtra(g,a,disc){let b=(npcB(g,disc)[a.id]||0);if(hunted(g,disc)){const t=standings(g,disc).slice(0,10);if(t.some(o=>o.id===a.id)&&!hasPerk('champ'))b+=1.0}return b}
 
 // ---------- Trainingskosten steigen mit dem Niveau ----------
 function trainCost(opt,int){const c=C();const a=BYID[c.id];const T=TINT[int];
@@ -1379,6 +1405,78 @@ function legacyScore(c){const globes=c.seasons.reduce((n,s)=>n+s.best.filter(b=>
   const parts=[['Siege ×3',c.wins*3],['Podeste',c.pods],['Kugeln ×15',globes*15],['Gesamtweltcups ×40',ov*40],['Gold ×20',c.medals[0]*20],['Medaillen ×8',(c.medals[1]+c.medals[2])*8],['Aufgaben & Rekorde',c.legacy||0],['Karriereziel',goalDone(c)?60:0]];
   const sum=parts.reduce((n,p)=>n+p[1],0);const stars=sum>=500?5:sum>=300?4:sum>=150?3:sum>=50?2:1;return{sum,stars,parts}}
 const starStr=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+
+// ---------- Pistengrafik mit Skifahrer ----------
+function runSvg(p,names){
+  const P=[[34,22],[206,62],[38,108],[204,150],[120,190]];
+  const len=[0];for(let i=1;i<P.length;i++)len.push(len[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));const tot=len[4];
+  const k=Math.min(p.k,3),hist=p.hist||[],crash=hist.length&&hist[hist.length-1].crash;
+  const from=len[k]/tot,to=len[Math.min(k+1,4)]/tot;const seg=P[Math.min(k+1,4)][0]-P[k][0];const dir=seg<0?-1:1;
+  const path='M'+P.map(x=>x.join(',')).join(' L');
+  // Tore entlang der Strecke (abwechselnd rot/blau)
+  let gates='';let gi=0;for(let s=0;s<4;s++){const[a,b]=[P[s],P[s+1]];for(const f of [0.28,0.5,0.72]){const x=a[0]+(b[0]-a[0])*f,y=a[1]+(b[1]-a[1])*f;const col=gi++%2?'#1f6fd6':'#E10A2B';const off=(s%2?-1:1)*7;
+    gates+=`<g transform="translate(${(x+off).toFixed(1)},${y.toFixed(1)})"><line x1="0" y1="0" x2="0" y2="-9" stroke="#5a6b7d" stroke-width="0.9"/><path d="M0,-9 L6,-7.5 L0,-5 Z" fill="${col}"/></g>`}}
+  const trees=[[10,60],[14,140],[8,190],[230,30],[228,105],[232,185],[18,98],[226,145]].map(([x,y],i)=>`<g transform="translate(${x},${y}) scale(${0.8+(i%3)*0.15})"><path d="M0,-14 L7,0 L-7,0 Z" fill="#1d5c46"/><path d="M0,-20 L5,-8 L-5,-8 Z" fill="#256f55"/><rect x="-1" y="0" width="2" height="3" fill="#5b3b25"/></g>`).join('');
+  const mk=[1,2,3].map(j=>{const h=hist[j-1];const cur=j===k+1&&!crash;const col=h?((h.d!=null?h.d<0:h.ok)?'#22C55E':'#FF5A5F'):cur?'#FFC93C':'#9FB3CC';
+    const [x,y]=P[j];const right=x<120;const lbl=esc(names[j-1])+(h&&h.d!=null?` ${h.d<0?'−':'+'}${Math.abs(h.d).toFixed(2)}`:'');const w=lbl.length*4.4+10;const lx=right?x+10:x-10-w;
+    return `${cur?`<circle cx="${x}" cy="${y}" r="11" fill="none" stroke="#FFC93C" stroke-width="2" class="pulse"/>`:''}<circle cx="${x}" cy="${y}" r="6.5" fill="${col}" stroke="#fff" stroke-width="1.6"/><text x="${x}" y="${y+2.6}" text-anchor="middle" font-size="7" font-weight="700" fill="#0b1c30">${j}</text>
+     <rect x="${lx}" y="${y-8}" width="${w}" height="15" rx="3" fill="${h?(col==='#22C55E'?'#0f5132':'#6b1a1f'):cur?'#0b1c30':'#ffffffcc'}"/><text x="${lx+5}" y="${y+2.8}" font-size="8.5" font-weight="600" fill="${h||cur?'#fff':'#0b1c30'}" font-family="Barlow Condensed,Arial Narrow,sans-serif">${lbl}</text>`}).join('');
+  const skier=crash?`<g><text font-size="20" text-anchor="middle" dy="6">💥</text></g>`:
+   `<g><g transform="scale(${dir*1.5},1.5)"><g transform="rotate(14)">
+     <circle class="spray" cx="-12" cy="6" r="2.4" fill="#fff"/><circle class="spray s2" cx="-17" cy="3" r="1.8" fill="#fff"/><circle class="spray s3" cx="-21" cy="7" r="1.4" fill="#fff"/>
+     <line x1="-11" y1="7" x2="12" y2="7" stroke="#E10A2B" stroke-width="2.2" stroke-linecap="round"/><line x1="-9" y1="9.5" x2="13" y2="9.5" stroke="#E10A2B" stroke-width="2.2" stroke-linecap="round"/>
+     <path d="M-2,6 L1,-1 L4,6" fill="none" stroke="#0b1c30" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+     <path d="M-4,-1 Q2,-7 7,-6 L8,-2 Q1,-1 -3,2 Z" fill="#E10A2B"/>
+     <line x1="6" y1="-4" x2="-6" y2="8" stroke="#9FB3CC" stroke-width="0.9"/><line x1="7" y1="-3" x2="-2" y2="9" stroke="#9FB3CC" stroke-width="0.9"/>
+     <circle cx="9.5" cy="-8.5" r="3.2" fill="#FFC93C" stroke="#0b1c30" stroke-width="0.8"/></g></g>
+     <animateMotion dur="1.1s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1" keyPoints="${from};${to}" keyTimes="0;1" path="${path}"/></g>`;
+  return `<svg class="runsvg" viewBox="0 0 240 206" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Strecke mit drei Schlüsselstellen">
+   <defs><linearGradient id="snow" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#f4f8fc"/><stop offset="1" stop-color="#d6e3ef"/></linearGradient>
+   <pattern id="chk" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="#0b1c30"/><rect x="3" y="3" width="3" height="3" fill="#0b1c30"/></pattern></defs>
+   <rect x="0" y="0" width="240" height="206" rx="4" fill="url(#snow)"/>
+   <path d="M0,0 L240,0 L240,22 Q180,10 120,16 Q60,22 0,10 Z" fill="#c3d3e3" opacity=".6"/>
+   ${trees}
+   <path d="${path}" fill="none" stroke="#c4d4e4" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="${path}" fill="none" stroke="#b2c6da" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round" stroke-linejoin="round"/>
+   ${gates}
+   <rect x="16" y="8" width="36" height="10" rx="2" fill="#0b1c30"/><text x="34" y="15.6" font-size="7" fill="#fff" text-anchor="middle" font-weight="700">START</text>
+   <rect x="92" y="192" width="56" height="6" fill="url(#chk)"/><rect x="92" y="198" width="56" height="7" fill="#E10A2B"/><text x="120" y="204" font-size="6" fill="#fff" text-anchor="middle" font-weight="700">ZIEL</text>
+   ${mk}${skier}</svg>`;
+}
+
+// ---------- Mehr Betreuer ----------
+ROLES.nutri={n:'Ernährungsberater:in',i:'🥗',d:l=>`Saisonbelastung baut sich ${12*l} % langsamer auf`};
+ROLES.agent={n:'Manager:in',i:'💼',d:l=>`Sponsorangebote +${12*l} % Geld`};
+ROLES.skitest={n:'Ski-Tester:in',i:'🧪',d:l=>`Ski verschleißen langsamer, Wachs-Tipp +${5*l} % treffsicher`};
+const STAFF2=[['t4','tech','Sepp Grünwald',1],['t5','tech','Marie Dubois',2],['tx','tech','Ole Kristiansen',4],
+ ['s4','speed','Luca Bertoldi',1],['s5','speed','Hanna Kofler',2],['sx','speed','Bernhard Prax',4],
+ ['k4','kond','Julia Steiner',2],['kx','kond','Prof. Dr. Lars Heim',4],['m4','mental','Thomas Leitner',1],['mx','mental','Dr. Mia Hartmann',4],
+ ['v4','service','Mario Pichler',2],['vx','service','Giorgio Valt',4],['p4','physio','Elias Brandner',1],['px','physio','Dr. Sofia Lind',4],
+ ['a4','video','Felix Mair',2],['ax','video','Anders Berg',4],
+ ['n1','nutri','Clara Winkler',1],['n2','nutri','Dr. Beat Arnold',2],['n3','nutri','Dr. Nina Haas',3],
+ ['g1','agent','Max Fuchs',1],['g2','agent','Sandra Klein',2],['g3','agent','Roberto Conti',3],
+ ['x1','skitest','Paul Ebner',1],['x2','skitest','Lena Nyström',2],['x3','skitest','Hubert Rainer',3]].map(([id,role,name,l])=>({id,role,name,l}));
+STAFF2.forEach(s=>{STAFF.push(s);SBY[s.id]=s});
+FEE.push(260000);SAL.push(200000);
+const staffOk=s=>s.l<4||C().kader==='A';
+
+// ---------- Mehr Fähigkeiten (teils mit Freischalt-Bedingung) ----------
+Object.assign(PERKS,{
+ start:['🚀 Raketenstart','+8 % Erfolg an der ersten Schlüsselstelle'],
+ slf:['🦊 Torfuchs','+0.4 Tempo im Slalom'],gsf:['🌀 Carving-Profi','+0.4 Tempo im Riesentorlauf'],
+ dhf:['🛩 Speed-Junkie','+0.4 Tempo in der Abfahrt'],sgf:['📐 Linienkünstler','+0.4 Tempo im Super-G'],
+ recover:['🔋 Schnelle Erholung','+20 % Erholung zwischen den Rennen'],sponsor:['📸 Werbegesicht','+15 % auf alle Sponsorgelder'],
+ xpboost:['🔥 Ehrgeiz','+15 % XP aus Rennen'],fall:['🤸 Fallprofi','Stürze führen 30 % seltener zu Verletzungen'],
+ snow:['❄️ Neuschnee-Liebhaber','+0.5 Tempo bei Schneefall und weicher Piste'],wax:['🧴 Wachsflüsterer','Der Wachs-Tipp stimmt immer'],
+ saver:['🪙 Sparfuchs','−20 % Reise- und Materialkosten'],iron:['🛡 Eisenmann','Saisonbelastung baut sich 20 % langsamer auf'],
+ focus:['🎯 Tunnelblick','Druck-Abzug an Schlüsselstellen halbiert'],veteran:['🧓 Routinier','Ab 30 Jahren +0.6 Tempo'],
+ champ:['👑 Champion-Aura','Gegner der Top 10 verlieren gegen dich ihren Gejagten-Bonus']});
+const PREQ={xpboost:[c=>c.starts0>=20,'20 Weltcupstarts'],fall:[c=>Object.keys(c.ach).includes('comeback')||c.starts0>=40,'Comeback oder 40 Starts'],
+ wax:[c=>c.starts0>=50,'50 Weltcupstarts'],focus:[c=>c.pods>=3,'3 Podestplätze'],veteran:[c=>age(BYID[c.id])>=28,'Alter ab 28'],
+ champ:[c=>c.wins>=10,'10 Weltcupsiege'],sponsor:[c=>(c.pop||0)>=40,'Beliebtheit 40'],slf:[c=>c.ptsDisc&&c.ptsDisc.SL,'Punkte im Slalom'],
+ gsf:[c=>c.ptsDisc&&c.ptsDisc.GS,'Punkte im Riesentorlauf'],dhf:[c=>c.ptsDisc&&c.ptsDisc.DH,'Punkte in der Abfahrt'],sgf:[c=>c.ptsDisc&&c.ptsDisc.SG,'Punkte im Super-G'],
+ iron:[c=>c.seasons.length>=2,'2 abgeschlossene Saisonen'],snow:[c=>c.starts0>=15,'15 Weltcupstarts']};
+const perkOk=k=>!PREQ[k]||PREQ[k][0](C());
 
 // =============== SAISONWECHSEL ===============
 function newTalent(g){
@@ -1613,7 +1711,7 @@ function goLive(){stopLive();const g=C().g;if(S.pend){TAB='home';render();return
 function render(){
   const app=$('#app');
   if(!C()){app.innerHTML=rCreate();bind();return}
-  G=C().g;document.body.dataset.phase=phase();
+  G=C().g;document.body.dataset.phase=phase();requestAnimationFrame(()=>{const b=document.querySelector('.choicebar');document.body.style.setProperty('--cbh',(b?b.offsetHeight:0)+'px')});
   app.innerHTML=rTop()+`<main>${({home:rHome,train:rTrain,races:rRaces,stand:rStand,career:rCareerTab})[TAB]()}</main>`;
   bind();
 }
@@ -1712,20 +1810,6 @@ function rFin(){
 }
 
 // ---------- UI der Erweiterungen ----------
-function runSvg(p,names){
-  const P=[[22,12],[150,34],[52,58],[160,82],[96,108]];
-  const len=[0];for(let i=1;i<P.length;i++)len.push(len[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));const tot=len[4];
-  const k=p.k,crash=p.hist.length&&p.hist[p.hist.length-1].crash;const to=len[Math.min(k+1,4)]/tot,from=len[Math.min(k,4)]/tot;
-  const path='M'+P.map(x=>x.join(',')).join(' L');
-  const mk=[1,2,3].map(j=>{const h=p.hist[j-1];const col=h?(h.d!=null?(h.d<0?'#4fd18b':'#ff8a8a'):(h.ok?'#4fd18b':'#ff8a8a')):(j===k+1?'#f4c430':'#8ea3b8');
-    return `<circle cx="${P[j][0]}" cy="${P[j][1]}" r="${j===k+1?7:5}" fill="${col}" ${j===k+1?'class="pulse"':''}/><text x="${P[j][0]+(P[j][0]>100?-10:10)}" y="${P[j][1]+4}" text-anchor="${P[j][0]>100?'end':'start'}" font-size="9" fill="#c9d4e0">${esc(names[j-1])}${h&&h.d!=null?` ${h.d<0?'':'+'}${h.d.toFixed(2)}`:''}</text>`}).join('');
-  return `<svg class="runsvg" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid meet">
-   <rect x="0" y="0" width="200" height="120" rx="2" fill="#081a30"/><path d="${path}" fill="none" stroke="#e8eef5" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".15"/>
-   <path d="${path}" fill="none" stroke="#5CC8FF" stroke-width="1.5" stroke-dasharray="3 3"/>
-   <text x="22" y="8" font-size="8" fill="#8ea3b8" text-anchor="middle">START</text><line x1="84" y1="108" x2="108" y2="108" stroke="#E10A2B" stroke-width="3"/><text x="96" y="118" font-size="8" fill="#8ea3b8" text-anchor="middle">ZIEL</text>
-   ${mk}
-   <g><text font-size="13" text-anchor="middle" dy="4">${crash?'💥':'⛷️'}</text><animateMotion dur="0.9s" fill="freeze" calcMode="linear" keyPoints="${from};${to}" keyTimes="0;1" path="${path}"/></g></svg>`;
-}
 function dhCard(){
   const p=S.pend;const ctx=p.ctx;const c=cal(ctx.g)[ctx.i];const names=secNames(ctx);
   if(p.done){const b=p.board;const k=b.findIndex(x=>isMe(x[0]));const lead=b[0][1];
@@ -1744,7 +1828,7 @@ function setupCard(){
   const p=S.pend;const ctx=p.ctx;const c=cal(ctx.g)[ctx.i];const me=C();const wx=WX.find(w=>w.k===ctx.wx);
   me.lastSetup=me.lastSetup||'bal';me.lastWax=me.lastWax||ctx.waxTip;const sm=me.staff&&me.staff.service?SBY[me.staff.service].name:'Dein Serviceteam';
   return `<div class="card race-card"><div class="eyebrow">🔧 Vor dem Start · ${DN[ctx.disc]} ${esc(c[1])} · ${wx.n}</div><h2 class="big">Material & Wachs</h2>
-   <p class="lead">💬 ${esc(sm)}: „Ich würde <b>${WAX[ctx.waxTip]}</b> nehmen.“ <span class="mut small">(Treffsicherheit ${[50,70,85,95][lvl('service')]} %)</span></p>
+   <p class="lead">💬 ${esc(sm)}: „Ich würde <b>${WAX[ctx.waxTip]}</b> nehmen.“ <span class="mut small">(Treffsicherheit ${hasPerk('wax')?100:Math.round(Math.min(0.99,[0.5,0.7,0.85,0.95,0.98][lvl('service')]+0.05*lvl('skitest'))*100)} %)</span></p>
    <h3>Wachs</h3><div class="opt">${WAXO.map(w=>`<button class="chip ${me.lastWax===w?'on':''}" data-wax="${w}">${WAX[w]}</button>`).join('')}</div>
    <h3>Ski-Setup</h3><div class="tgrid">${Object.entries(SETUP).map(([k,[t,d]])=>`<button class="tbtn ${me.lastSetup===k?'sel':''}" data-setup="${k}"><b>${t}</b><span class="mut small">${d}</span></button>`).join('')}</div>
    <p class="mut small">Piste heute: ${hardSnow(ctx)?'hart/eisig':'weich/griffig'} · Wetter: ${wx.n}</p>
@@ -1761,8 +1845,8 @@ function summerCard(){const c=C();const s=c.summer;
    <p class="row-btn"><button class="btn gold" data-act="summer" ${s.camp&&s.focus?'':'disabled'}>🗓 Saison ${sLbl()} beginnen</button></p></div>`}
 function perkCard(){const c=C();const cost=perkCost();
   return `<div class="card" style="margin-top:12px"><h2>⭐ Spezialfähigkeiten <span class="mut small">nächste kostet ${cost} XP · du hast ${c.xp||0} XP</span></h2>
-   <div class="stgrid">${Object.entries(PERKS).map(([k,[t,d]])=>{const own=c.perks&&c.perks[k];return `<div class="offer ${own?'own':''}"><b>${t}</b><div class="small mut">${d}</div>${own?'<span class="ok small">✓ freigeschaltet</span>':`<button class="btn sm" data-perk="${k}" ${(c.xp||0)<cost?'disabled':''}>Freischalten (${cost} XP)</button>`}</div>`}).join('')}</div>
-   <p class="mut small">Fähigkeiten wirken dauerhaft. Jede weitere wird 30 XP teurer – XP fehlen dann fürs Training.</p></div>`}
+   <div class="stgrid perkgrid">${Object.entries(PERKS).sort((x,y)=>{const sc=k=>c.perks&&c.perks[k]?2:perkOk(k)?0:1;return sc(x[0])-sc(y[0])}).map(([k,[t,d]])=>{const own=c.perks&&c.perks[k];return `<div class="offer ${own?'own':''}"><b>${t}</b><div class="small mut">${d}</div>${own?'<span class="ok small">✓ freigeschaltet</span>':!perkOk(k)?`<span class="mut small">🔒 Voraussetzung: ${PREQ[k][1]}</span>`:`<button class="btn sm" data-perk="${k}" ${(c.xp||0)<cost?'disabled':''}>Freischalten (${cost} XP)</button>`}</div>`}).join('')}</div>
+   <p class="mut small">Fähigkeiten wirken dauerhaft. Jede weitere wird 30 XP teurer – XP fehlen dann fürs Training. 🔒 Manche musst du erst freispielen.</p></div>`}
 function pressCard(n){const c=C();const L=(c.press||[]).slice(0,n);
   return `<div class="card"><h2>📰 Pressespiegel <span class="mut small">· Beliebtheit ${Math.round(c.pop||10)} (${popLabel(c.pop||10)})</span></h2>${L.length?`<div class="news">${L.map(x=>`<div><span class="mut small">${x.p}:</span> „${esc(x.t)}“</div>`).join('')}</div>`:'<p class="mut">Noch berichtet niemand über dich. Das ändert sich mit guten Ergebnissen.</p>'}</div>`}
 
@@ -1855,7 +1939,7 @@ function rTrain(){
     <div class="stgrid">${Object.entries(ROLES).map(([r,R])=>{const cur=c.staff[r]?SBY[c.staff[r]]:null;
       return `<div class="card"><h2>${R.i} ${R.n}</h2>
        ${cur?`<div class="cur"><b>${esc(cur.name)}</b> <span class="stars">${'★'.repeat(cur.l)}</span><div class="ok small">${R.d(cur.l)}</div><button class="btn sm ghost" data-fire="${r}">Entlassen</button></div>`:'<p class="mut small">Nicht besetzt</p>'}
-       ${STAFF.filter(s=>s.role===r&&(!cur||s.id!==cur.id)).map(s=>`<div class="cand"><div><b>${esc(s.name)}</b> <span class="stars">${'★'.repeat(s.l)}</span><div class="mut small">${R.d(s.l)}</div><div class="small">Ablöse ${Math.round(FEE[s.l]/1000)}k · Gehalt ${Math.round(SAL[s.l]/1000)}k/Saison</div></div><button class="btn sm" data-hire="${s.id}" ${c.money<FEE[s.l]?'disabled':''}>${cur?'Tauschen':'Holen'}</button></div>`).join('')}</div>`}).join('')}</div>`;
+       ${STAFF.filter(s=>s.role===r&&(!cur||s.id!==cur.id)).sort((x,y)=>x.l-y.l).map(s=>`<div class="cand"><div><b>${esc(s.name)}</b> <span class="stars">${'★'.repeat(s.l)}</span>${s.l===4?' <span class="pill">Weltklasse</span>':''}<div class="mut small">${R.d(s.l)}</div><div class="small">Ablöse ${Math.round(FEE[s.l]/1000)}k · Gehalt ${Math.round(SAL[s.l]/1000)}k/Saison</div></div><button class="btn sm" data-hire="${s.id}" ${c.money<FEE[s.l]||!staffOk(s)?'disabled':''}>${!staffOk(s)?'nur A-Kader':cur?'Tauschen':'Holen'}</button></div>`).join('')}</div>`}).join('')}</div>`;
   }else if(TST==='spons'){
     const card=(t,o)=>`<div class="card"><h2>${t}</h2>${o?`<p class="lead"><b>${esc(o.name)}</b> ${o.nat?flag(o.nat):''}</p><p class="small">${sponsorText(o)}</p><p class="mut small">${fmtCHF(o.base)} pro Saison · noch ${o.left} Saison${o.left>1?'en':''}</p>${t.startsWith('🎿')&&c.skiAdapt?`<p class="warn small">Eingewöhnung ans neue Material: noch ${c.skiAdapt} Rennen</p>`:''}`:`<p class="mut">Kein Vertrag.${t.startsWith('🎿')?' Ohne Ausrüster fährst du mit Material von der Stange (−0.2 Tempo).':''}</p>`}</div>`;
     body=`<div class="g2" style="margin-top:0">${card('🎿 Ski-Ausrüster',c.sp.ski)}${card('🧢 Kopfsponsor',c.sp.head)}</div>
