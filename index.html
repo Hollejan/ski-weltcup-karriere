@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0c1622">
+<meta name="theme-color" content="#0A1F3A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,6 +12,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <title>Ski-Weltcup-Karriere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0c1622;--panel:#13202f;--panel2:#182a3d;--line:#24394f;--txt:#e8eef5;--mut:#8ea3b8;--acc:#e63946;--ice:#7cc6fe;--gold:#f4c430;--silver:#c9d1d9;--bronze:#d08a4c;--ok:#4fd18b;--bad:#ff8a8a}
 *{box-sizing:border-box}
@@ -225,6 +227,106 @@ table{table-layout:auto}
 }
 
 @media(max-width:700px){header.top{position:static}.acts{width:100%}.acts .btn.pri,.acts .btn.gold{flex:1}}
+
+/* =============== TV-GRAFIK =============== */
+:root{--bg:#0A1F3A;--panel:#0F2847;--panel2:#163560;--line:#21456F;--txt:#F3F6FA;--mut:#9FB3CC;--acc:#E10A2B;--ice:#5CC8FF;--gold:#FFC93C;--ok:#22C55E;--bad:#FF5A5F;
+  --cond:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;--body:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif}
+html{background:var(--bg)}
+body{font-family:var(--body);font-size:15px;background:
+  linear-gradient(180deg,rgba(10,31,58,.0),rgba(10,31,58,.95) 420px),
+  repeating-linear-gradient(115deg,rgba(255,255,255,.025) 0 2px,transparent 2px 22px),
+  radial-gradient(900px 420px at 80% -120px,#1f4f86 0,transparent 70%),var(--bg);background-attachment:fixed}
+h1,h2,h3,.big,.bigres,.kpis b,.proj b,.splits b,.gapgrid b,.btn,.chip,.bnav button,nav button,.stat .v,.kpirow b,.finish,.lead b{font-family:var(--cond)}
+.card{background:linear-gradient(180deg,rgba(23,53,96,.55),rgba(15,40,71,.92));border:1px solid var(--line);border-radius:4px;box-shadow:0 1px 0 rgba(255,255,255,.04) inset}
+.card h2{font-size:19px;font-weight:700;letter-spacing:.2px;padding-left:10px;border-left:4px solid var(--ice);line-height:1.15}
+.card h3{font-family:var(--cond);font-size:14px;letter-spacing:.4px;text-transform:none;color:var(--ice)}
+h2.big{font-size:26px;font-weight:800;line-height:1.05;border-left:0;padding-left:0}
+.eyebrow{font-family:var(--cond);font-size:13px;font-weight:600;letter-spacing:.3px;text-transform:none;color:var(--ice)}
+.btn{border-radius:3px;font-weight:700;font-size:16px;letter-spacing:.3px;padding:9px 16px}
+.btn.pri,.btn.racebtn{background:var(--acc);border-color:var(--acc);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);padding-left:20px;padding-right:20px}
+.btn.gold{clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);padding-left:20px;padding-right:20px;color:#1a1300}
+.btn.sm{font-size:14px;padding:6px 12px}
+.chip{border-radius:3px;font-weight:600;font-size:14px}
+.chip.on{background:var(--ice);border-color:var(--ice);color:#06213d}
+.chip.big.on{background:#1d4a7e;color:#fff;border-color:var(--ice)}
+.pill{border-radius:3px;font-family:var(--cond);font-weight:600;font-size:13px}
+/* Namen im TV-Stil */
+.sn{font-family:var(--cond);font-weight:700;letter-spacing:.4px}
+.fn{opacity:.85}
+/* Kopfzeile als Scorebug */
+header.top{background:linear-gradient(90deg,#071a31,#0c2647);border-bottom:3px solid var(--acc)!important}
+.avatar{border-radius:3px;background:var(--acc);font-size:26px}
+.who .nm{font-family:var(--cond);font-size:22px;font-weight:800;letter-spacing:.3px}
+.kpis{gap:0}
+.kpis div{background:#0f2b4f;border:0;border-left:1px solid #21456F;border-radius:0;padding:5px 12px}
+.kpis div:first-child{border-left:0;border-radius:3px 0 0 3px}.kpis div:last-child{border-radius:0 3px 3px 0}
+.kpis span{font-family:var(--cond);letter-spacing:.3px;font-size:12px}
+.kpis b{font-size:20px;font-weight:700}
+nav#tabs button{font-size:16px;font-weight:600;border-radius:0;border:0;border-bottom:3px solid transparent;padding:8px 12px}
+nav#tabs button.on{background:transparent;border-bottom-color:var(--acc)}
+.bnav{background:rgba(7,26,49,.98)!important;border-top:2px solid var(--acc)!important}
+.bnav button{font-size:12px!important;font-weight:600}
+.bnav button{border-radius:0!important}.bnav button.on{background:transparent!important;color:#fff!important;box-shadow:inset 0 3px 0 var(--acc)}
+/* Phasenleiste */
+.phase{border-radius:3px}
+.st{font-family:var(--cond);font-size:15px}
+.pinfo{font-family:var(--cond);font-size:17px}.pinfo b{letter-spacing:.6px}
+/* Zeitlisten */
+table{font-variant-numeric:tabular-nums}
+th{background:transparent;font-family:var(--cond);font-size:13px;letter-spacing:.3px;color:var(--mut)}
+td{border-bottom:1px solid rgba(33,69,111,.6)}
+.tl tr:nth-child(even) td{background:rgba(255,255,255,.025)}
+.tl td:first-child{width:38px}
+.tl tr td:first-child{font-family:var(--cond);font-weight:700;font-size:16px;text-align:center;color:#fff;background:linear-gradient(90deg,#163560,#163560) no-repeat center/30px 24px}
+.tl tr.p1 td:first-child{color:#1a1300;background-image:linear-gradient(90deg,var(--gold),var(--gold))}
+.tl tr.p2 td:first-child{color:#0b1c30;background-image:linear-gradient(90deg,#D9E2EC,#D9E2EC)}
+.tl tr.p3 td:first-child{color:#1f0f00;background-image:linear-gradient(90deg,#D99355,#D99355)}
+tr.me td{background:rgba(225,10,43,.16)!important}
+tr.me td:nth-child(2){box-shadow:inset 3px 0 0 var(--acc)}
+.meb{background:var(--acc);color:#fff;border-radius:2px;font-family:var(--cond)}
+/* Podest */
+.podium div{border-radius:3px 3px 0 0;background:linear-gradient(180deg,#1d4a7e,#132f55)}
+.podium b{font-family:var(--cond);font-size:15px}
+/* Live-Einblendung (dein Lauf) */
+.race-card{background:linear-gradient(180deg,#132f55,#0e2443)!important;border:1px solid var(--line)!important;border-top:3px solid var(--acc)!important}
+.lt{display:flex;align-items:stretch;margin:-14px -14px 12px;background:#fff;color:#0b1c30;font-family:var(--cond);overflow:hidden}
+.lt-bib{background:var(--acc);color:#fff;font-weight:800;font-size:26px;min-width:56px;display:grid;place-items:center;clip-path:polygon(0 0,100% 0,85% 100%,0 100%);padding-right:6px}
+.lt-name{flex:1;padding:6px 10px;display:flex;flex-direction:column;justify-content:center;line-height:1.05}
+.lt-name b{font-size:24px;font-weight:800;letter-spacing:.4px}
+.lt-name span{font-size:13px;font-weight:600;color:#4a5d75}
+.lt-live{background:#0b1c30;color:#fff;font-weight:700;font-size:14px;padding:0 12px;display:flex;align-items:center;gap:6px;letter-spacing:.6px}
+.lt-live i{width:9px;height:9px;border-radius:50%;background:var(--acc);animation:pulse 1.2s infinite}
+@media (prefers-reduced-motion:reduce){.lt-live i,.runsvg .pulse{animation:none}}
+.splits{gap:4px}
+.splits div{border-radius:0;background:#0b1c30;border-left:4px solid var(--line);padding:6px 10px}
+.splits .green{border-left-color:var(--ok);background:#0b1c30}.splits .amber{border-left-color:var(--gold);background:#0b1c30}.splits .red{border-left-color:var(--bad);background:#0b1c30}
+.splits b{font-size:22px}
+.proj{background:#0b1c30;padding:6px 12px;border-radius:2px}
+.proj b{font-size:26px}
+.choice{border-radius:3px;border-width:2px}
+.choice b{font-family:var(--cond);font-size:20px;font-weight:800;letter-spacing:.3px}
+.choice.att{background:linear-gradient(135deg,rgba(225,10,43,.22),transparent 70%)}
+.choice.ctrl{background:linear-gradient(135deg,rgba(92,200,255,.16),transparent 70%)}
+.choice.safe{background:linear-gradient(135deg,rgba(34,197,94,.16),transparent 70%)}
+.lastsec{border-radius:2px;font-family:var(--cond);font-size:17px}
+.prev{border-radius:2px}.pressure{border-radius:2px}
+.break-card{border-top:3px solid var(--ice)!important;border-radius:4px}
+.bigres{font-weight:800}
+.train-card{border-top:3px solid var(--gold)!important;border-radius:4px}
+.tbtn{border-radius:3px}.tbtn b{font-family:var(--cond);font-size:18px;font-weight:700}
+.hero-card{background:linear-gradient(135deg,#1b4677,#0f2847 65%)}
+.status{border-radius:2px;font-family:var(--cond);font-size:17px}
+.barwrap{border-radius:1px;background:#081a30;height:9px}
+.toast{border-radius:3px;font-family:var(--cond);font-size:18px;clip-path:polygon(10px 0,100% 0,100% 100%,0 100%)}
+.tag{border-radius:2px;font-family:var(--cond);font-size:13px}
+input,select{border-radius:3px}
+.cal .row{border-bottom-color:rgba(33,69,111,.6)}.cal .row.sel{background:#1d4a7e;box-shadow:inset 4px 0 0 var(--acc)}
+.cal .row .v{font-family:var(--cond);font-size:16px;font-weight:600}
+@media(max-width:700px){
+  .lt{margin:-12px -12px 10px}.lt-name b{font-size:21px}.lt-bib{font-size:22px;min-width:48px}
+  .who .nm{font-size:20px}.kpis div{padding:4px 6px}.kpis b{font-size:16px}
+  h2.big{font-size:23px}.choice b{font-size:18px}.splits b{font-size:18px}
+}
 
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);-webkit-tap-highlight-color:transparent;touch-action:manipulation;overscroll-behavior-y:none}
 </style>
@@ -1234,7 +1336,8 @@ const fmtT=t=>{if(t==null)return'';const m=Math.floor(t/60),s=t-m*60;return(m?m+
 const fmtD=d=>d<=0.0001?'':'+'+d.toFixed(2);
 const fmtCHF=n=>Math.round(n).toLocaleString('de-CH')+' CHF';
 const dfmt=c=>{const[m,d]=c[0].split('-');return d+'.'+m+'.'};
-const nm=id=>{const a=BYID[id];if(!a)return'–';return `${flag(a.nat)} ${esc(a.name)}${a.me?'<span class="meb">DU</span>':''}${a.rookie?'<span class="real" style="background:var(--ice)">NEU</span>':''}${S[gOf(id)].inj[id]>0?'<span class="inj">verletzt</span>':''}`};
+const tvName=n=>{const p=n.split(' ');if(p.length<2)return `<span class="sn">${esc(n.toUpperCase())}</span>`;return `<span class="fn">${esc(p[0])}</span> <span class="sn">${esc(p.slice(1).join(' ').toUpperCase())}</span>`};
+const nm=id=>{const a=BYID[id];if(!a)return'–';return `${flag(a.nat)} ${tvName(a.name)}${a.me?'<span class="meb">DU</span>':''}${a.rookie?'<span class="real" style="background:var(--ice)">NEU</span>':''}${S[gOf(id)].inj[id]>0?'<span class="inj">verletzt</span>':''}`};
 const gOf=id=>id[0]==='m'?'M':'W';
 const tag=d=>`<span class="tag ${d}">${d}</span>`;
 const sLbl=()=>`${S.season}/${String(S.season+1).slice(2)}`;
@@ -1251,7 +1354,7 @@ function raceDetail(i){
   if(!r){const ni=nextIdx(G);return `<div class="card">${head}${tinfo}<p class="mut">Noch nicht gefahren.</p>${ni===i?`<button class="btn pri" data-act="sim">▶ Jetzt simulieren</button> <button class="btn" data-act="live">📺 Live ansehen</button>`:''}${favs(i)}</div>`}
   const f=r.fin;const lead=f[0]?f[0].t:0;
   const pod=f.length>=3?`<div class="podium"><div class="s"><b>${nm(f[1].id)}</b><span>${fmtD(f[1].t-lead)}</span></div><div class="g"><b>${nm(f[0].id)}</b><span>${fmtT(f[0].t)}</span></div><div class="b"><b>${nm(f[2].id)}</b><span>${fmtD(f[2].t-lead)}</span></div></div>`:'';
-  const tb=`<div class="scroll"><table><tr><th>#</th><th>Name</th><th class="r hm">Nr.</th>${r.two?'<th class="r hm">1. Lauf</th><th class="r hm">2. Lauf</th>':''}<th class="r hm">Zeit</th><th class="r">Rückst.</th><th class="r">Pkt</th></tr>
+  const tb=`<div class="scroll"><table class="tl"><tr><th>#</th><th>Name</th><th class="r hm">Nr.</th>${r.two?'<th class="r hm">1. Lauf</th><th class="r hm">2. Lauf</th>':''}<th class="r hm">Zeit</th><th class="r">Rückst.</th><th class="r">Pkt</th></tr>
    ${f.map(x=>`<tr ${trc(x.id,'p'+x.rk)}><td>${x.rk}.</td><td>${nm(x.id)}</td><td class="r mut hm">${x.bib}</td>${r.two?`<td class="r mut hm">${fmtT(x.t1)}</td><td class="r mut hm">${fmtT(x.t2)}</td>`:''}<td class="r hm">${fmtT(x.t)}</td><td class="r mut">${x.rk===1?fmtT(x.t):fmtD(x.t-lead)}</td><td class="r">${x.pts||''}</td></tr>`).join('')}
    </table>${r.out.length?`<p class="mut" style="margin:10px 8px">${r.out.map(o=>`${isMe(o.id)?'<b style="color:var(--gold)">':''}${esc(BYID[o.id]?.name||'')} (${o.st==='DNQ'?'n. qualifiziert':o.st==='DNF2'?'Ausfall 2. Lauf':o.st==='DNF1'?'Ausfall 1. Lauf':'Ausfall'})${isMe(o.id)?'</b>':''}`).join(' · ')}</p>`:''}</div>`;
   return `<div class="card">${head}${tinfo}${r.dec&&C()?`<p style="margin:0 0 8px">Deine Taktik: <b>${r.dec}</b></p>`:''}${r.real?'<p class="mut" style="margin-top:-4px">Echtes Rennen: Podest'+(G==='W'?' und Shiffrins 7. Platz':'')+' wie in Wirklichkeit, Rest simuliert.</p>':''}${pod}${tb}</div>`;
@@ -1263,7 +1366,7 @@ function favs(i){
 function formStr(id){const f=S[gOf(id)].form[id]||0;return f>0.7?'Form ↑':f<-0.7?'Form ↓':'Form →'}
 function stTable(st,disc){
   if(!st.length)return '<p class="mut">Noch keine Punkte vergeben.</p>';const lead=st[0].pts;
-  return `<div class="scroll"><table><tr><th>#</th><th>Name</th><th class="r">Punkte</th><th class="r">Rückst.</th><th class="r hm">Siege</th><th class="r hm">Podeste</th>${disc?'':DISC.map(d=>`<th class="r hm">${d}</th>`).join('')}</tr>
+  return `<div class="scroll"><table class="tl"><tr><th>#</th><th>Name</th><th class="r">Punkte</th><th class="r">Rückst.</th><th class="r hm">Siege</th><th class="r hm">Podeste</th>${disc?'':DISC.map(d=>`<th class="r hm">${d}</th>`).join('')}</tr>
   ${st.map((o,k)=>`<tr ${trc(o.id,'p'+(k+1))}><td>${k+1}.</td><td>${nm(o.id)}</td><td class="r"><b>${o.pts}</b></td><td class="r mut">${k?'-'+(lead-o.pts):''}</td><td class="r hm">${o.w||''}</td><td class="r hm">${o.pod||''}</td>${disc?'':DISC.map(d=>`<td class="r mut hm">${o.d[d]||''}</td>`).join('')}</tr>`).join('')}</table></div>`;
 }
 function rNations(){
@@ -1281,14 +1384,14 @@ function rAth(){
   const nats=[...new Set(ATH[G].map(a=>a.nat))].sort();
   const l=ATH[G].filter(a=>(NTAB==='ALL'||a.nat===NTAB)&&(!q||a.name.toLowerCase().includes(q)));
   return `<div class="subnav"><input id="aq" placeholder="Suchen…" value="${esc(AFILT)}"> <select id="an"><option value="ALL">Alle Nationen</option>${nats.map(n=>`<option ${n===NTAB?'selected':''} value="${n}">${flag(n)} ${n}</option>`).join('')}</select> <span class="mut">${ATH[G].length} im Feld</span></div>
-  <div class="card"><div class="scroll"><table><tr><th>Name</th><th class="hm">Nation</th><th class="r hm">Alter</th>${DISC.map(d=>`<th class="r">${d}</th>`).join('')}<th class="r hm">Gesamt</th><th class="hm">Status</th></tr>
+  <div class="card"><div class="scroll"><table class="tl"><tr><th>Name</th><th class="hm">Nation</th><th class="r hm">Alter</th>${DISC.map(d=>`<th class="r">${d}</th>`).join('')}<th class="r hm">Gesamt</th><th class="hm">Status</th></tr>
   ${l.map(a=>`<tr ${trc(a.id)}><td>${nm(a.id)}</td><td class="mut hm">${a.nat}</td><td class="r hm">${age(a)}</td>${DISC.map(d=>`<td class="r ${a.r[d]>=70?'':'mut'}">${a.r[d]?Math.round(a.r[d]):'–'}</td>`).join('')}<td class="r hm">${pos[a.id]||'–'}</td><td class="hm">${S[G].inj[a.id]>0?'<span class="inj">verletzt</span>':'<span class="mut">fit</span>'}</td></tr>`).join('')}</table></div></div>`;
 }
 function rHist(){
   const L=S.legends||[];
   if(!S.hist.length&&!L.length)return `<div class="card"><h2>Historie</h2><p class="mut">Noch keine abgeschlossene Saison. Beende die Saison mit „Saison abschließen“ – dann landen Sieger:innen und Kugeln hier.</p></div>`;
   const p=s=>{if(!s)return'–';const[a,n,pt]=s.split('|');return `${flag(n)} ${esc(a)}${pt?` <span class="mut">${pt}</span>`:''}`};
-  return `<div class="card"><h2>Ehrentafel</h2><div class="scroll"><table><tr><th>Saison</th><th>Herren</th><th>Damen</th><th class="hm">Kugeln Herren (DH/SG/GS/SL)</th><th class="hm">Kugeln Damen</th><th class="hm">Nationencup</th></tr>
+  return `<div class="card"><h2>Ehrentafel</h2><div class="scroll"><table class="tl"><tr><th>Saison</th><th>Herren</th><th>Damen</th><th class="hm">Kugeln Herren (DH/SG/GS/SL)</th><th class="hm">Kugeln Damen</th><th class="hm">Nationencup</th></tr>
   ${S.hist.map(h=>`<tr><td>${h.season}/${String(h.season+1).slice(2)}</td><td>${p(h.M.overall[0])}</td><td>${p(h.W.overall[0])}</td><td class="mut hm">${DISC.map(d=>esc((h.M.globes[d]||'–').split('|')[0])).join(' / ')}</td><td class="mut hm">${DISC.map(d=>esc((h.W.globes[d]||'–').split('|')[0])).join(' / ')}</td><td class="hm">${h.nations?flag(h.nations[0])+' '+h.nations[0]:''}</td></tr>`).join('')}</table></div></div>
   ${L.length?`<div class="card" style="margin-top:16px"><h2>Deine beendeten Karrieren</h2><table><tr><th>Name</th><th class="r">Saisonen</th><th class="r">Siege</th><th class="r">Podeste</th><th class="r">Medaillen</th><th class="r">Meilensteine</th></tr>${L.map(x=>`<tr><td>${flag(x.nat)} ${esc(x.name)}</td><td class="r">${x.seasons}</td><td class="r">${x.wins}</td><td class="r">${x.pods}</td><td class="r">${x.medals.join('/')}</td><td class="r">${x.ach}/${ACH.length}</td></tr>`).join('')}</table></div>`:''}`;
 }
@@ -1489,9 +1592,9 @@ function runSvg(p,names){
   const mk=[1,2,3].map(j=>{const h=p.hist[j-1];const col=h?(h.d!=null?(h.d<0?'#4fd18b':'#ff8a8a'):(h.ok?'#4fd18b':'#ff8a8a')):(j===k+1?'#f4c430':'#8ea3b8');
     return `<circle cx="${P[j][0]}" cy="${P[j][1]}" r="${j===k+1?7:5}" fill="${col}" ${j===k+1?'class="pulse"':''}/><text x="${P[j][0]+(P[j][0]>100?-10:10)}" y="${P[j][1]+4}" text-anchor="${P[j][0]>100?'end':'start'}" font-size="9" fill="#c9d4e0">${esc(names[j-1])}${h&&h.d!=null?` ${h.d<0?'':'+'}${h.d.toFixed(2)}`:''}</text>`}).join('');
   return `<svg class="runsvg" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid meet">
-   <rect x="0" y="0" width="200" height="120" rx="8" fill="#0d1b2a"/><path d="${path}" fill="none" stroke="#e8eef5" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".15"/>
-   <path d="${path}" fill="none" stroke="#7cc6fe" stroke-width="1.5" stroke-dasharray="3 3"/>
-   <text x="22" y="8" font-size="8" fill="#8ea3b8" text-anchor="middle">START</text><line x1="84" y1="108" x2="108" y2="108" stroke="#e63946" stroke-width="3"/><text x="96" y="118" font-size="8" fill="#8ea3b8" text-anchor="middle">ZIEL</text>
+   <rect x="0" y="0" width="200" height="120" rx="2" fill="#081a30"/><path d="${path}" fill="none" stroke="#e8eef5" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".15"/>
+   <path d="${path}" fill="none" stroke="#5CC8FF" stroke-width="1.5" stroke-dasharray="3 3"/>
+   <text x="22" y="8" font-size="8" fill="#8ea3b8" text-anchor="middle">START</text><line x1="84" y1="108" x2="108" y2="108" stroke="#E10A2B" stroke-width="3"/><text x="96" y="118" font-size="8" fill="#8ea3b8" text-anchor="middle">ZIEL</text>
    ${mk}
    <g><text font-size="13" text-anchor="middle" dy="4">${crash?'💥':'⛷️'}</text><animateMotion dur="0.9s" fill="freeze" calcMode="linear" keyPoints="${from};${to}" keyTimes="0;1" path="${path}"/></g></svg>`;
 }
@@ -1500,7 +1603,7 @@ function dhCard(){
   if(p.done){const b=p.board;const k=b.findIndex(x=>isMe(x[0]));const lead=b[0][1];
     return `<div class="card race-card"><div class="eyebrow">🏁 Abfahrtstraining beendet · ${esc(c[1])}</div><h2 class="big">Trainingsplatz ${k+1} von ${b.length}</h2>
      <h3>Deine Erkenntnisse</h3><div class="news">${p.hist.map(h=>`<div>${h.ok?'✅':'➖'} <b>${esc(h.n)}:</b> ${h.txt}</div>`).join('')}</div>
-     <h3>Trainingszeiten</h3><table>${b.slice(0,5).map((x,j)=>`<tr ${trc(x[0])}><td>${j+1}.</td><td>${nm(x[0])}</td><td class="r mut">${j?'+'+(x[1]-lead).toFixed(2):fmtT(x[1])}</td></tr>`).join('')}${k>=5?`<tr class="me"><td>${k+1}.</td><td>${nm(b[k][0])}</td><td class="r">+${(b[k][1]-lead).toFixed(2)}</td></tr>`:''}</table>
+     <h3>Trainingszeiten</h3><table class="tl">${b.slice(0,5).map((x,j)=>`<tr ${trc(x[0])}><td>${j+1}.</td><td>${nm(x[0])}</td><td class="r mut">${j?'+'+(x[1]-lead).toFixed(2):fmtT(x[1])}</td></tr>`).join('')}${k>=5?`<tr class="me"><td>${k+1}.</td><td>${nm(b[k][0])}</td><td class="r">+${(b[k][1]-lead).toFixed(2)}</td></tr>`:''}</table>
      <p class="mut small">Streckenkenntnis +0.5 · Müdigkeit +4</p><p class="row-btn"><button class="btn racebtn" data-act="tosetup">▶ Weiter zum Renntag</button></p></div>`}
   const pr=secProb(ctx,p.k,0.1);
   return `<div class="card race-card"><div class="eyebrow">🔎 Abfahrtstraining · ${esc(c[1])} · keine Wertung</div>
@@ -1650,7 +1753,7 @@ function breakCard(){
   return `<div class="card break-card"><div class="eyebrow">⏸ Pause nach dem 1. Durchgang · ${DN[ctx.disc]} ${flag(c[2])} ${esc(c[1])} · ${wx.n}</div>
    <h2 class="big">${head}</h2><p class="mut">${sub}</p>${ctx.wxOld?`<div class="lastsec badbg">🌦 <b>Wetterumschwung!</b> ${WX.find(w=>w.k===ctx.wxOld).n} → ${WX.find(w=>w.k===ctx.wx).n}${ctx.setup?` · ${ctx.setup.txt}`:''}</div>`:''}${gaps}
    ${p.hist&&p.hist.length?`<h3>Dein 1. Lauf</h3><div class="xpline">${p.hist.map(h=>`<span class="pill">${SECCH[h.ch][0].split(' ')[0]} ${esc(h.n)} <b class="${h.d<0?'ok':'bad'}">${h.d<0?'':'+'}${h.d.toFixed(2)}</b></span>`).join('')}</div>`:''}
-   <h3>Zwischenstand</h3><table>${rows.map(([i,x])=>`<tr ${trc(x.id,'p'+(i+1))}><td>${i+1}.</td><td>${nm(x.id)}${x.id===rv?' <span class="pill">Rivale</span>':''}</td><td class="r mut">${i?'+'+(x.t1-lead).toFixed(2):fmtT(x.t1)}</td></tr>`).join('')}</table>
+   <h3>Zwischenstand</h3><table class="tl">${rows.map(([i,x])=>`<tr ${trc(x.id,'p'+(i+1))}><td>${i+1}.</td><td>${nm(x.id)}${x.id===rv?' <span class="pill">Rivale</span>':''}</td><td class="r mut">${i?'+'+(x.t1-lead).toFixed(2):fmtT(x.t1)}</td></tr>`).join('')}</table>
    <p class="mut small">${ctx.out.filter(o=>o.st==='DNF1').length} Ausfälle im 1. Lauf · ${Math.min(30,r1.length)} im Finale</p>
    <p class="row-btn"><button class="btn racebtn" data-act="brk">${ctx.mb2?'▶ Weiter zum 2. Durchgang':'🏁 Rennen beenden'}</button></p></div>`;
 }
@@ -1664,7 +1767,8 @@ function pendCard(){
   const last=p.hist[p.hist.length-1];
   const prev=p.run===2&&ctx.mb2?(()=>{const k=ctx.r1.findIndex(x=>x.id===me.id);return `<p class="mut small">Nach Lauf 1: Platz ${k+1} (${k?'+'+(ctx.r1[k].t1-ctx.r1[0].t1).toFixed(2):'Bestzeit'})</p>`})():'';
   const sturzA=(1-pr.pA)*CRASHF[ctx.disc],sturzK=(1-pr.pK)*0.06;
-  return `<div class="card race-card"><div class="eyebrow">${runLbl} · ${DN[ctx.disc]} ${flag(c[2])} ${esc(c[1])} · ${wx.n}</div>
+  const ma=BYID[me.id];const mp=ma.name.split(' ');
+  return `<div class="card race-card"><div class="lt"><span class="lt-bib">${p.run===1?ctx.mb1.bib:ctx.mb2.o2}</span><span class="lt-name"><b>${flag(ma.nat)} ${esc((mp.length>1?mp.slice(1).join(' '):mp[0]).toUpperCase())}</b><span>${esc(mp[0])} · ${runLbl} · ${DN[ctx.disc]} ${esc(c[1])}</span></span><span class="lt-live"><i></i>LIVE</span></div><div class="eyebrow">${wx.n}</div>
    ${runSvg(p,names)}${p.setupTxt&&p.k===0?`<div class="lastsec" style="background:rgba(124,198,254,.12)">🔧 ${p.setupTxt}</div>`:''}${prev}
    ${last?`<div class="lastsec ${last.d<0?'good':'badbg'}"><b>${esc(last.n)}:</b> ${last.txt} <span>${last.d<0?'':'+'}${last.d.toFixed(2)} s</span></div>`:''}
    ${(p.splits||[]).length?`<div class="splits">${p.splits.map(sp=>`<div class="${sp.gap<=0?'green':sp.rk<=10?'amber':'red'}"><span>⏱ Zwischenzeit ${sp.k}</span><b>${sp.gap<=0?'−'+Math.abs(sp.gap).toFixed(2):'+'+sp.gap.toFixed(2)}</b><span>Platz ${sp.rk}</span></div>`).join('')}</div>`:''}
@@ -1706,7 +1810,7 @@ function rCareerTab(){
     <div class="card"><span>Weltcupsiege</span><b>${c.wins}</b></div><div class="card"><span>Podeste</span><b>${c.pods}</b></div>
     <div class="card"><span>Kristallkugeln</span><b>${globes}</b></div><div class="card"><span>Medaillen</span><b>🥇${c.medals[0]} 🥈${c.medals[1]} 🥉${c.medals[2]}</b></div>
     <div class="card"><span>Beliebtheit</span><b>${Math.round(c.pop||10)}</b></div></div>
-   ${c.seasons.length?`<div class="card"><h2>Saisonbilanzen</h2><div class="scroll"><table><tr><th>Saison</th><th class="r hm">Alter</th><th class="hm">Kader</th><th class="r">Gesamt</th><th class="r">Punkte</th><th class="r">Siege</th><th class="r">Podeste</th>${DISC.map(d=>`<th class="r hm">${d}</th>`).join('')}</tr>${c.seasons.map(s=>`<tr><td>${s.s}/${String(s.s+1).slice(2)}</td><td class="r hm">${s.age}</td><td class="hm">${s.kader}</td><td class="r">${s.rk}${s.rk!=='–'?'.':''}</td><td class="r">${s.pts}</td><td class="r">${s.wins}</td><td class="r">${s.pods}</td>${s.best.map(b=>`<td class="r mut hm">${b<99?b+'.':'–'}</td>`).join('')}</tr>`).join('')}</table></div></div>`:''}
+   ${c.seasons.length?`<div class="card"><h2>Saisonbilanzen</h2><div class="scroll"><table class="tl"><tr><th>Saison</th><th class="r hm">Alter</th><th class="hm">Kader</th><th class="r">Gesamt</th><th class="r">Punkte</th><th class="r">Siege</th><th class="r">Podeste</th>${DISC.map(d=>`<th class="r hm">${d}</th>`).join('')}</tr>${c.seasons.map(s=>`<tr><td>${s.s}/${String(s.s+1).slice(2)}</td><td class="r hm">${s.age}</td><td class="hm">${s.kader}</td><td class="r">${s.rk}${s.rk!=='–'?'.':''}</td><td class="r">${s.pts}</td><td class="r">${s.wins}</td><td class="r">${s.pods}</td>${s.best.map(b=>`<td class="r mut hm">${b<99?b+'.':'–'}</td>`).join('')}</tr>`).join('')}</table></div></div>`:''}
    <div class="g2"><div class="card"><h2>Meilensteine (${Object.keys(c.ach).length}/${ACH.length})</h2><div class="ach">${ACH.map(([k2,t,d])=>`<div class="${c.ach[k2]?'on':''}"><b>${c.ach[k2]?'🏅':'🔒'} ${t}</b>${d}</div>`).join('')}</div></div>
    <div class="card"><h2>Tagebuch</h2><div class="news scroll" style="max-height:420px">${c.log.slice(0,60).map(l=>`<div>${esc(l)}</div>`).join('')}</div></div></div>
    <div style="margin-top:16px">${pressCard(15)}</div>
