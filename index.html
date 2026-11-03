@@ -180,6 +180,35 @@ body[data-phase=summer] header.top{border-bottom:3px solid var(--gold)}
 .pressure{font-size:13px;padding:7px 10px;border-radius:8px;background:rgba(230,57,70,.15);border:1px solid rgba(230,57,70,.4);margin:6px 0}
 .status.ec{color:var(--ice)}.badpill{background:rgba(255,138,138,.2);color:var(--bad);border-color:var(--bad)}
 .legacy-card .stars{font-size:20px}.huntpill{background:rgba(225,10,43,.25)!important;border-color:var(--acc)!important;color:#fff}
+
+/* ---- Rennansicht ohne Scrollen ---- */
+body[data-phase=race] header.top,body[data-phase=race] nav#tabs,body[data-phase=race] .bnav,body[data-phase=race] .phase{display:none!important}
+body[data-phase=race] main{padding-top:8px;padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+.hud{padding:10px 12px}
+.hud .lt{margin:-10px -12px 8px}
+.hud-main{display:grid;grid-template-columns:1fr 118px;gap:8px;align-items:stretch}
+.hud-svg .runsvg{margin:0;max-width:none;height:100%;max-height:150px}
+.hud-side{display:grid;gap:6px;align-content:start}
+.hud-box{background:#081a30;border-left:4px solid var(--line);padding:6px 8px;display:grid;line-height:1.1}
+.hud-box span{font-size:11px;color:var(--mut)}.hud-box b{font-family:var(--cond);font-size:26px;font-weight:800}.hud-box b.small2{font-size:16px}.hud-box em{font-style:normal;font-family:var(--cond);font-size:15px;color:var(--mut)}
+.hud-box.green{border-left-color:var(--ok)}.hud-box.green b{color:var(--ok)}.hud-box.amber{border-left-color:var(--gold)}.hud-box.amber b{color:var(--gold)}.hud-box.red{border-left-color:var(--bad)}.hud-box.red b{color:var(--bad)}
+.hud-last{margin:8px 0 0;padding:7px 10px;font-family:var(--cond);font-size:16px;display:flex;justify-content:space-between;gap:8px;border-radius:2px}
+.hud-last.good{background:rgba(34,197,94,.18)}.hud-last.badbg{background:rgba(255,90,95,.16)}.hud-last.info{background:rgba(92,200,255,.12)}
+.hud-last span{font-weight:800}
+.hud-info{margin-top:6px;display:grid;gap:4px}.hud-info .prev{font-size:12.5px;padding:5px 8px;margin:0}.hud-info .press{background:rgba(225,10,43,.15);border-left:3px solid var(--acc)}
+.hud-sec{margin-top:8px;display:grid}.hud-sec b{font-family:var(--cond);font-size:22px;font-weight:800;line-height:1.1}.hud-sec span{font-size:12.5px;color:var(--mut)}
+.choicebar{position:fixed;left:0;right:0;bottom:0;z-index:9;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:rgba(7,26,49,.97);border-top:3px solid var(--acc);backdrop-filter:blur(8px)}
+.choicebar.two{grid-template-columns:1fr 1fr}
+.choicebar .choice{flex-direction:column!important;align-items:flex-start;gap:2px;padding:10px 8px;min-height:96px}
+.choicebar .choice b{font-size:18px;width:auto;white-space:nowrap}@media(max-width:420px){.choicebar .choice b{font-size:15.5px}.choicebar .choice{padding:9px 6px}}
+.choicebar .choice span{font-size:12px;line-height:1.2}
+.choicebar .choice span:nth-of-type(1){font-family:var(--cond);font-size:17px;font-weight:700;color:var(--txt)}
+.cb-auto{grid-column:1/-1;background:none;border:0;color:var(--mut);font:inherit;font-size:13px;padding:2px;cursor:pointer}
+body[data-phase=race] .break-card .row-btn,body[data-phase=race] .race-card:not(.hud) .row-btn{position:fixed;left:0;right:0;bottom:0;z-index:9;margin:0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));background:rgba(7,26,49,.97);border-top:3px solid var(--acc)}
+body[data-phase=race] .break-card .row-btn .btn,body[data-phase=race] .race-card .row-btn .btn{width:100%;font-size:19px;padding:14px}
+@media(min-width:701px){.choicebar{left:50%;right:auto;transform:translateX(-50%);width:min(900px,100%);border-radius:6px 6px 0 0}
+  body[data-phase=race] .break-card .row-btn,body[data-phase=race] .race-card:not(.hud) .row-btn{left:50%;right:auto;transform:translateX(-50%);width:min(900px,100%)}
+  .hud-main{grid-template-columns:1fr 180px}.hud-svg .runsvg{max-height:260px}}
 body{overflow-x:hidden}
 .rat{grid-template-columns:70px 1fr 54px}
 .mobonly{display:none}
@@ -1626,7 +1655,7 @@ function rHome(){
   if(ph==='race'){const x=cal(g)[S.pend.ctx.i];
     h+=phaseBar('race',`<b>${S.pend.kind==='break'?'PAUSE':S.pend.kind==='dhtrain'?'ABFAHRTSTRAINING':S.pend.kind==='setup'?'VOR DEM START':'RENNTAG'}</b> · ${DN[x[3]]} in ${esc(x[1])} · ${S.pend.kind==='break'?'nach dem 1. Durchgang':S.pend.run===2?'2. Durchgang':'Startnummer '+S.pend.ctx.mb1.bib}`);
     h+=pendCard();
-    h+=`<div class="g3"><div class="card"><h2>Körper & Kopf</h2>${bar('Fitness',100-c.fat,'f2')}${bar('Belastung',c.load||0,'f')}${bar('Mental',c.mental)}</div>
+    if(S.pend.kind!=='run')h+=`<div class="g3"><div class="card"><h2>Körper & Kopf</h2>${bar('Fitness',100-c.fat,'f2')}${bar('Belastung',c.load||0,'f')}${bar('Mental',c.mental)}</div>
       <div class="card"><h2>Tipp</h2><p class="mut small">Angriff lohnt sich, wenn du Zeit gutmachen musst – mit niedriger Fitness oder auf schweren Stellen wird's gefährlich. Ein Sturz kostet Punkte und kann verletzen.</p></div>
       <div class="card"><h2>⚔️ Rivale</h2>${c.rival&&BYID[c.rival]?`<p>${nm(c.rival)}</p><p class="mut small">Saisonduell ${(c.h2h||{w:0}).w}:${(c.h2h||{l:0}).l}</p>`:''}</div></div>`;
     return h;}
@@ -1707,7 +1736,7 @@ function dhCard(){
   return `<div class="card race-card"><div class="eyebrow">🔎 Abfahrtstraining · ${esc(c[1])} · keine Wertung</div>
    ${runSvg({k:p.k,hist:p.hist.map(h=>({...h,d:null}))},names)}
    <h2 class="big">Teste: ${esc(pr.name)}</h2><p class="mut small">Im Training kannst du Linien ausprobieren. Gefundene Linien helfen dir morgen im Rennen.</p>
-   <div class="choices"><button class="choice att" data-tsec="att"><b>🔥 Ideallinie suchen</b><span>Erfolg ${pctS(pr.pA)}</span><span>bei Erfolg im Rennen +15 % Angriff</span></button>
+   <div class="choicebar two"><button class="choice att" data-tsec="att"><b>🔥 Ideallinie suchen</b><span>Erfolg ${pctS(pr.pA)}</span><span>bei Erfolg im Rennen +15 % Angriff</span></button>
    <button class="choice ctrl" data-tsec="ctrl"><b>⚖️ Kontrolliert testen</b><span>Erfolg ${pctS(pr.pK)}</span><span>bei Erfolg im Rennen +6 % kontrolliert</span></button></div></div>`;
 }
 function setupCard(){
@@ -1882,19 +1911,21 @@ function pendCard(){
   const prev=p.run===2&&ctx.mb2?(()=>{const k=ctx.r1.findIndex(x=>x.id===me.id);return `<p class="mut small">Nach Lauf 1: Platz ${k+1} (${k?'+'+(ctx.r1[k].t1-ctx.r1[0].t1).toFixed(2):'Bestzeit'})</p>`})():'';
   const sturzA=(1-pr.pA)*CRASHF[ctx.disc],sturzK=(1-pr.pK)*0.06;
   const ma=BYID[me.id];const mp=ma.name.split(' ');
-  return `<div class="card race-card"><div class="lt"><span class="lt-bib">${p.run===1?ctx.mb1.bib:ctx.mb2.o2}</span><span class="lt-name"><b>${flag(ma.nat)} ${esc((mp.length>1?mp.slice(1).join(' '):mp[0]).toUpperCase())}</b><span>${esc(mp[0])} · ${runLbl} · ${DN[ctx.disc]} ${esc(c[1])}</span></span><span class="lt-live"><i></i>LIVE</span></div><div class="eyebrow">${wx.n}</div>
-   ${runSvg(p,names)}${p.setupTxt&&p.k===0?`<div class="lastsec" style="background:rgba(124,198,254,.12)">🔧 ${p.setupTxt}</div>`:''}${prev}
-   ${last?`<div class="lastsec ${last.d<0?'good':'badbg'}"><b>${esc(last.n)}:</b> ${last.txt} <span>${last.d<0?'':'+'}${last.d.toFixed(2)} s</span></div>`:''}
-   ${(p.splits||[]).length?`<div class="splits">${p.splits.map(sp=>`<div class="${sp.gap<=0?'green':sp.rk<=10?'amber':'red'}"><span>⏱ Zwischenzeit ${sp.k}</span><b>${sp.gap<=0?'−'+Math.abs(sp.gap).toFixed(2):'+'+sp.gap.toFixed(2)}</b><span>Platz ${sp.rk}</span></div>`).join('')}</div>`:''}
-   ${prevRunner(p)}${(()=>{const pr=pressure(ctx,p.run);return pr.p>0?`<div class="pressure">😰 Druck: <b>${pr.p>=2.5?'enorm':pr.p>=1.5?'hoch':'spürbar'}</b> – ${pr.r.join(', ')}${C().mental<55?' · wenig Mentalstärke macht\'s schwerer':''}</div>`:''})()}
-   <div class="proj"><span>Hochrechnung</span><b>Platz ${pj.rk}</b><span>${pj.rk===1?'Bestzeit!':'+'+Math.max(0,pj.gap).toFixed(2)+' s'}</span></div>
-   <h2 class="big">Schlüsselstelle ${p.k+1}/3: ${esc(pr.name)}</h2><p class="mut small">${dtxt} · Fitness ${Math.round(100-me.fat)} · Mental ${Math.round(me.mental)}${lvl('video')?' · 🎥 exakte Quoten':' · Quoten geschätzt'}</p>
-   <div class="choices">
-    <button class="choice att" data-sec="att"><b>🔥 Angriff</b><span>Erfolg ${pctS(pr.pA)}</span><span>bis −${(0.0045*L).toFixed(2)} s · Sturz ${pctC(sturzA)}</span></button>
-    <button class="choice ctrl" data-sec="ctrl"><b>⚖️ Kontrolliert</b><span>Erfolg ${pctS(pr.pK)}</span><span>±0 · Sturz ${pctC(sturzK)}</span></button>
+  const lastSp=(p.splits||[]).slice(-1)[0];const prs=pressure(ctx,p.run);
+  const l1=p.run===2&&ctx.mb2?(()=>{const k=ctx.r1.findIndex(x=>x.id===me.id);return `Lauf 1: ${k+1}. ${k?'+'+(ctx.r1[k].t1-ctx.r1[0].t1).toFixed(2):'Bestzeit'}`})():'';
+  return `<div class="card race-card hud"><div class="lt"><span class="lt-bib">${p.run===1?ctx.mb1.bib:ctx.mb2.o2}</span><span class="lt-name"><b>${flag(ma.nat)} ${esc((mp.length>1?mp.slice(1).join(' '):mp[0]).toUpperCase())}</b><span>${runLbl} · ${DN[ctx.disc]} ${esc(c[1])} · ${wx.n}</span></span><span class="lt-live"><i></i>LIVE</span></div>
+   <div class="hud-main"><div class="hud-svg">${runSvg(p,names)}</div>
+    <div class="hud-side"><div class="hud-box"><span>Hochrechnung</span><b>${pj.rk}.</b><em class="${pj.rk===1?'ok':''}">${pj.rk===1?'Bestzeit':'+'+Math.max(0,pj.gap).toFixed(2)}</em></div>
+     ${lastSp?`<div class="hud-box ${lastSp.gap<=0?'green':lastSp.rk<=10?'amber':'red'}"><span>⏱ Zwischenzeit ${lastSp.k}</span><b>${lastSp.gap<=0?'−'+Math.abs(lastSp.gap).toFixed(2):'+'+lastSp.gap.toFixed(2)}</b><em>${lastSp.rk}.</em></div>`:`<div class="hud-box"><span>${l1?'Stand':'Start'}</span><b class="small2">${l1||'Nr. '+ctx.mb1.bib}</b></div>`}</div></div>
+   ${last?`<div class="hud-last ${last.d<0?'good':'badbg'}"><b>${esc(last.n)}:</b> ${last.txt}<span>${last.d<0?'':'+'}${last.d.toFixed(2)}</span></div>`:p.setupTxt?`<div class="hud-last info">🔧 ${p.setupTxt}</div>`:''}
+   <div class="hud-info">${prevRunner(p)}${prs.p>0?`<div class="prev press">😰 Druck ${prs.p>=2.5?'enorm':prs.p>=1.5?'hoch':'spürbar'}: ${prs.r.join(', ')}</div>`:''}</div>
+   <div class="hud-sec"><b>Schlüsselstelle ${p.k+1}/3 · ${esc(pr.name)}</b><span>${dtxt} · Fitness ${Math.round(100-me.fat)} · Mental ${Math.round(me.mental)}</span></div>
+   <div class="choicebar">
+    <button class="choice att" data-sec="att"><b>🔥 Angriff</b><span>${pctS(pr.pA)}</span><span>−${(0.0045*L).toFixed(2)} s · Sturz ${pctC(sturzA)}</span></button>
+    <button class="choice ctrl" data-sec="ctrl"><b>⚖️ Kontrolliert</b><span>${pctS(pr.pK)}</span><span>±0 · Sturz ${pctC(sturzK)}</span></button>
     <button class="choice safe" data-sec="safe"><b>🛡 Sicher</b><span>kein Risiko</span><span>+${(0.003*L).toFixed(2)} s</span></button>
-   </div>
-   <p style="margin:10px 0 0"><button class="btn sm ghost" data-act="secauto">⏩ Rest kontrolliert fahren</button></p></div>`;
+    <button class="cb-auto" data-act="secauto">⏩ Rest kontrolliert fahren</button>
+   </div></div>`;
 }
 // ---------- Rennen ----------
 function rRaces(){
