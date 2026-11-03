@@ -903,7 +903,8 @@ function trainGain(opt,int){
 function doTrain(opt){
   const c=C();const a=BYID[c.id];const tp=c.trainPending;if(!tp)return;
   tp.done=tp.done||[];
-  if(opt==='reg'){if(tp.reg)return;tp.reg=1;c.fat=clamp(c.fat-18*(1+0.15*lvl('physio')),0,100);c.tlog=[`${tp.what}: 🛌 Regeneration`].concat(c.tlog||[]).slice(0,30);tp.done.push('🛌 Regeneration');toast('🛌 Erholt – Fitness steigt');}
+  if(tp.reg)return;
+  if(opt==='reg'){if(tp.n)return;tp.reg=1;c.fat=clamp(c.fat-18*(1+0.15*lvl('physio')),0,100);c.tlog=[`${tp.what}: 🛌 Regeneration`].concat(c.tlog||[]).slice(0,30);tp.done.push('🛌 Regeneration');toast('🛌 Ruhetag – Fitness steigt');c.trainPending=null;maybeEvent();save();render();window.scrollTo(0,0);return}
   else{const T=TINT[TI];if((c.xp||0)<T.c)return;c.xp-=T.c;const gn=trainGain(opt,TI);
     if(DN[opt])a.r[opt]=+Math.min(a.pot,a.r[opt]+gn).toFixed(2);else if(opt==='kond')c.kond=clamp(c.kond+gn,0,100);else c.mental=clamp(c.mental+gn,0,100);
     if(S[c.g].inj[c.id]>0)c.fat=0;else c.fat=clamp(c.fat+T.f*(1-0.08*lvl('kond')),0,100);
@@ -1396,7 +1397,7 @@ function rFin(){
 function runSvg(p,names){
   const P=[[22,12],[150,34],[52,58],[160,82],[96,108]];
   const len=[0];for(let i=1;i<P.length;i++)len.push(len[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));const tot=len[4];
-  const k=p.k,crash=p.hist.length&&p.hist[p.hist.length-1].crash;const to=len[Math.min(k,4)]/tot,from=len[Math.max(0,k-1)]/tot;
+  const k=p.k,crash=p.hist.length&&p.hist[p.hist.length-1].crash;const to=len[Math.min(k+1,4)]/tot,from=len[Math.min(k,4)]/tot;
   const path='M'+P.map(x=>x.join(',')).join(' L');
   const mk=[1,2,3].map(j=>{const h=p.hist[j-1];const col=h?(h.d!=null?(h.d<0?'#4fd18b':'#ff8a8a'):(h.ok?'#4fd18b':'#ff8a8a')):(j===k+1?'#f4c430':'#8ea3b8');
     return `<circle cx="${P[j][0]}" cy="${P[j][1]}" r="${j===k+1?7:5}" fill="${col}" ${j===k+1?'class="pulse"':''}/><text x="${P[j][0]+(P[j][0]>100?-10:10)}" y="${P[j][1]+4}" text-anchor="${P[j][0]>100?'end':'start'}" font-size="9" fill="#c9d4e0">${esc(names[j-1])}${h&&h.d!=null?` ${h.d<0?'':'+'}${h.d.toFixed(2)}`:''}</text>`}).join('');
@@ -1457,9 +1458,9 @@ function trainCard(c){
    <p class="lead">Du hast <b class="warn">${c.xp||0} XP</b>. ${tp.day&&!tp.hurt?'Ganzer Trainingstag: <b>+40 % Trainingseffekt</b>.':''}${tp.hurt?' Verletzt wirkt Disziplintraining nur zu 30 %.':''}</p>
    <h3>Intensität</h3><div class="opt">${Object.entries(TINT).map(([k,T])=>`<button class="chip ${TI===k?'on':''}" data-int="${k}">${T.n} · ${T.c} XP${T.f?` · Müdigkeit +${T.f}`:''}</button>`).join('')}</div>
    <h3>Was trainierst du?${tp.n?` <span class="mut small">(Einheit ${tp.n+1} heute · Effekt ${Math.round(Math.max(0.4,1-0.2*tp.n)*100)} %)</span>`:''}</h3><div class="tgrid">${opts}
-   <button class="tbtn reg" data-train="reg" ${tp.reg?'disabled':''}><b>🛌 Regeneration</b><span class="mut small">${tp.reg?'heute schon erledigt':`0 XP · Fitness +${Math.round(18*(1+0.15*lvl('physio')))}`}</span></button></div>
+   <button class="tbtn reg" data-train="reg" ${tp.n?'disabled':''}><b>🛌 Ruhetag</b><span class="mut small">${tp.n?'nicht mehr möglich – du hast heute trainiert':`0 XP · Fitness +${Math.round(18*(1+0.15*lvl('physio')))} · beendet den Tag`}</span></button></div>
    ${(tp.done||[]).length?`<h3>Heute erledigt (${tp.done.length})</h3><div class="xpline">${tp.done.map(d=>`<span class="pill">✓ ${esc(d)}</span>`).join('')}</div>`:''}
-   <p class="mut small">Du kannst so viele Einheiten machen, wie deine XP reichen. Jede weitere Einheit am selben Tag bringt 20 % weniger und macht müde. Regeneration einmal pro Tag.</p>
+   <p class="mut small">Du kannst so viele Einheiten machen, wie deine XP reichen. Jede weitere Einheit am selben Tag bringt 20 % weniger und macht müde. Entweder trainieren oder ein Ruhetag zur Regeneration – beides an einem Tag geht nicht.</p>
    <p class="row-btn"><button class="btn pri" data-act="endday">✓ Trainingstag abschließen</button></p>
    ${tp.hurt?'<p style="margin-top:10px"><button class="btn sm" data-act="autoreha">⏩ Reha automatisch bis zum Comeback</button></p>':''}</div>`;
 }
