@@ -114,7 +114,7 @@ nav button.on{background:var(--panel2);border-color:var(--line);color:var(--txt)
 .hud-svg{position:relative}.hud-svg.egov{min-height:190px}.hud-svg canvas#ego{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .egotog{position:absolute;right:8px;bottom:8px;z-index:2;background:rgba(7,26,49,.8);color:#fff;border:1px solid rgba(255,255,255,.25);font:600 12px var(--cond);padding:4px 8px;border-radius:3px;cursor:pointer}
 .egoend{position:fixed;inset:0;z-index:30;background:#000;display:flex;flex-direction:column;align-items:center}.egoend canvas{flex:1 1 auto;width:100%;display:block}.egoend span{padding:10px;color:#9fb3cc}
-.review>.card,.review>.g2{margin-bottom:12px}.rv-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.review>.card,.review>.g2{margin-bottom:12px}.revbox td.r{white-space:nowrap;vertical-align:top}.rv-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .rv-rank{background:rgba(7,26,49,.6);padding:8px 14px;text-align:center;min-width:92px;border-left:4px solid var(--gold)}.rv-rank span{display:block;font-size:11px;color:var(--mut)}.rv-rank b{display:block;font:800 34px var(--cond);line-height:1}.rv-rank em{font-style:normal;font-size:12px;color:var(--mut)}
 .rv-trophy{margin:10px 0;padding:10px 12px;background:linear-gradient(90deg,rgba(244,196,48,.3),rgba(244,196,48,.05));border-left:4px solid var(--gold);font:800 18px var(--cond);color:var(--gold)}
 .globes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.globe-t{background:rgba(255,255,255,.04);border-left:4px solid var(--line);padding:10px;display:grid;gap:2px;align-content:start}
@@ -1142,6 +1142,7 @@ function careerAfterRace(g,i,res,disc,ctx){
   if(ec)c.sres.push({v:venue,d:disc,l:ec.fis?'FIS':'EC',rk:ec.rk||null,st:ec.rk?null:'DNF'});
   if(jw)c.sres.push({v:'Junioren-WM',d:jw.d,l:'JWM',rk:jw.rk||null,st:jw.rk?null:'DNF'});
   if(ec)c.lastDay.ec=ec;if(jw)c.lastDay.jwm=jw;
+  globeAward(c);
   careerDay(started||!!ec,xp,ec?`${ec.fis?'FIS-Rennen':'Europacup'} · ${DN[disc]}`:`${venue} · ${DN[disc]}`,gapDays(g,i));
 }
 function ageF(a){const x=age(a);return x<=21?1.25:x<=24?1.05:x<=27?0.8:x<=30?0.5:0.25}
@@ -1509,6 +1510,17 @@ function shopCard(c){const a=BYID[c.id];const ag=age(a);c.own=c.own||{};
 const NETQ=0.65; // nach 25 % Steuern und 10 % Manager
 function sponPay(c,name,what,v){if(!v)return;earn('Sponsoren',v,true);const net=Math.round(v*NETQ);(c.lastSpon=c.lastSpon||{list:[]}).list.push({name,what,v,net});
   clog(`💶 ${name}: ${what} ${fmtCHF(v)} (netto ${fmtCHF(net)})`)}
+// ---------- Kristallkugel-Prämien (bei Saisonabschluss) ----------
+function globeAward(c){if(!c||c.globeS===S.season||nextIdx(c.g)>=0)return;c.globeS=S.season;const g=c.g;const a=BYID[c.id];
+  const won=DISC.filter(d=>(standings(g,d)[0]||{}).id===c.id);const big=(standings(g)[0]||{}).id===c.id;if(!won.length&&!big){c.globeAw=null;return}
+  const list=[];const sk=c.sp&&c.sp.ski,hd=c.sp&&c.sp.head;c.lastSpon={key:'globe',list:[]};
+  const give=(lbl,prize,mult,pop,xp)=>{earn('Kugelprämien',prize,true);list.push({t:`${lbl}: Preisgeld`,v:prize});popAdd(pop);c.xp=(c.xp||0)+xp;list.push({t:`${lbl}: +${xp} XP · +${pop} Beliebtheit`});
+    if(sk&&sk.pod){const v=sk.pod*mult;sponPay(c,sk.name,`${lbl}-Prämie`,v);list.push({t:`${lbl}: ${sk.name}`,v})}
+    if(hd&&hd.perk==='podium'){const v=hd.pod*mult;sponPay(c,hd.name,`${lbl}-Prämie`,v);list.push({t:`${lbl}: ${hd.name}`,v})}};
+  won.forEach(d=>{give(`🔮 Kleine Kugel ${DN[d]}`,40000,3,6,20);press(`Kristall! ${a.name} holt die kleine Kugel im ${DN[d]}`)});
+  if(big){give('🏆 Große Kugel',150000,6,15,50);press(`DER GROSSE TRIUMPH: ${a.name} gewinnt den Gesamtweltcup!`)}
+  const sum=list.reduce((n,x)=>n+(x.v||0),0);c.globeAw={s:S.season,list,sum,won,big};
+  clog(`🏆 Kugelübergabe: ${[big?'Große Kugel':null].concat(won.map(d=>'Kugel '+DN[d])).filter(Boolean).join(', ')} – Prämien ${fmtCHF(sum)} brutto`);toast(big?'🏆 Die große Kristallkugel gehört dir!':'🔮 Kristallkugel gewonnen!')}
 // ---------- Sponsorziele ----------
 function makeTarget(o,t){
   if(o.type==='head'&&rnd()<.4){o.goal={k:'pop',v:[0,25,45,65][t],t:`Beliebtheit mindestens ${[0,25,45,65][t]}`};return}
@@ -1772,6 +1784,7 @@ function nextSeason(){
   const c=C();
   if(c){const g=c.g;const st=standings(g);const k=st.findIndex(o=>o.id===c.id);const me=BYID[c.id];
     const best=DISC.map(d=>{const kk=standings(g,d).findIndex(o=>o.id===c.id);return kk<0?99:kk+1});
+    globeAward(c);
     DISC.forEach((d,j)=>{if(best[j]===1){unlock('globe');clog(`🔮 Kleine Kugel ${DN[d]}!`)}});
     if(k===0){unlock('overall');clog('🏆 GESAMTWELTCUPSIEG!')}
     const wins=cal(g).filter((x,i)=>{const r=S[g].res[i];return r&&r.fin.some(f=>f.id===c.id&&f.rk===1)}).length;
@@ -2360,6 +2373,7 @@ function globeCard(c){const g=c.g;const me=c.id;const ev=eventOf(S.season);
   const nm2={};['M','W'].forEach(gg=>{const n=nations(gg);for(const x in n)nm2[x]=(nm2[x]||0)+n[x]});const nc=Object.entries(nm2).sort((a,b)=>b[1]-a[1]);
   const wmL=ev&&(S[g].wm||S[g].wmp)?DISC.filter(d=>(S[g].wm||S[g].wmp).races[d]&&(S[g].wm||S[g].wmp).races[d][0]).map(d=>{const x=(S[g].wm||S[g].wmp).races[d][0];return `<span class="pill">${tag(d)} 🥇 ${esc(BYID[x.id]?BYID[x.id].name.split(' ').pop():'')}${isMe(x.id)?' (DU)':''}</span>`}).join(''):'';
   return `<div class="card"><h2>🔮 Kristallkugeln ${sLbl()} · ${g==='M'?'Herren':'Damen'}</h2>
+   <p class="mut small" style="margin-top:-4px">Prämie für deine eigenen Kugeln: kleine Kugel 40.000 CHF + 3× Podestprämie deiner Sponsoren · große Kugel 150.000 CHF + 6× Podestprämie.</p>
    <div class="globes">${tile('Gesamtweltcup','🏆',standings(g),1)}${DISC.map(d=>tile(DN[d],'🔮',standings(g,d))).join('')}</div>
    <div class="gl-foot">${nc[0]?`<span>🌍 Nationencup: <b>${flag(nc[0][0])} ${NATNAME[nc[0][0]]||nc[0][0]}</b> (${nc[0][1]} Pkt)</span>`:''}${wmL?`<span>🏅 ${ev[0]}: ${wmL}</span>`:''}</div></div>`}
 function seasonReview(c){const g=c.g;const a=BYID[c.id];const d=revData(c);const st=standings(g);const k=st.findIndex(o=>o.id===c.id);
@@ -2377,6 +2391,7 @@ function seasonReview(c){const g=c.g;const a=BYID[c.id];const d=revData(c);const
     <div class="rv-head"><div><h2 class="big">${'★'.repeat(d.stars)}<span class="mut">${'☆'.repeat(5-d.stars)}</span></h2><p class="lead" style="margin:4px 0">${verdict}</p></div>
      <div class="rv-rank"><span>${k>=0?'Gesamtweltcup':c.kader==='J'?'FIS':'Europacup'}</span><b>${k>=0?(k+1)+'.':c.kader==='J'?fisTotal(c):ecTotal(c)}</b><em>${k>=0?st[k].pts+' Pkt':'Punkte'}</em></div></div>
     ${big||myGlobes.length?`<div class="rv-trophy">${big?'🏆 Du gewinnst den GESAMTWELTCUP!':''}${big&&myGlobes.length?' · ':''}${myGlobes.length?'🔮 Kristallkugel'+(myGlobes.length>1?'n':'')+': '+myGlobes.join(', '):''}</div>`:''}
+    ${c.globeAw&&c.globeAw.s===S.season?`<div class="revbox good" style="margin-bottom:10px"><span>🏆 Kugelübergabe – deine Prämien</span><table class="small">${c.globeAw.list.map(x=>`<tr><td>${esc(x.t)}</td><td class="r">${x.v?'+'+fmtCHF(x.v):''}</td></tr>`).join('')}<tr><td><b>Summe brutto</b></td><td class="r"><b class="ok">+${fmtCHF(c.globeAw.sum)}</b></td></tr><tr><td class="mut">netto (nach Steuern & Manager)</td><td class="r mut">${fmtCHF(Math.round(c.globeAw.sum*NETQ))}</td></tr></table></div>`:''}
     <p class="small">🎯 Saisonziel ${d.goal.ok?'<b class="ok">✅ erreicht</b>':'<b class="bad">❌ verpasst</b>'} <span class="mut">– ${esc(d.goal.t)}</span></p>
     <p class="row-btn">${btn}</p></div>
    ${globeCard(c)}
