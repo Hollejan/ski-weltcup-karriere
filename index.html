@@ -807,7 +807,7 @@ function bibOrder(list,two,wc){
   let order=[];
   if(two){order=shuffle(top.slice(0,7)).concat(shuffle(top.slice(7,15)),top.slice(15))}
   else{const slots=new Array(30).fill(null);const g1=shuffle(top.slice(0,10)),g2=shuffle(top.slice(10,20));
-    g1.forEach((a,k)=>slots[5+k]=a);[0,1,2,3,4,15,16,17,18,19].forEach((s,k)=>{if(g2[k])slots[s]=g2[k]});
+    const lead=Math.min(5,g2.length);g1.forEach((a,k)=>slots[5+k]=a);[0,1,2,3,4].slice(5-lead).concat([15,16,17,18,19]).forEach((s,k)=>{if(g2[k])slots[s]=g2[k]});
     const g3=top.slice(20);const big=g3.filter(a=>wc[a.id]>=500),small=shuffle(g3.filter(a=>wc[a.id]<500));let p=20;big.concat(small).forEach(a=>slots[p++]=a);
     order=slots.filter(Boolean)}
   return order.concat(rest);
@@ -958,7 +958,7 @@ function setCere(ctx,res,sp,hs,hp){const c=C();const me=c.id;const m=res.fin.fin
   const lead=res.fin[0];const a=BYID[me];
   S.cere={g:ctx.g,i:ctx.i,disc:ctx.disc,venue:ctx.venue,vnat:ctx.vnat,wm:ctx.wm?eventOf(S.season)[0]:null,two:ctx.two,
     rk:m?m.rk:null,st:o?o.st:null,t:m?m.t:null,gap:m&&lead?+(m.t-lead.t).toFixed(2):null,pts:m?m.pts||0:0,prize:m&&!ctx.wm?PRIZE[m.rk-1]||0:0,
-    top:res.fin.slice(0,3).map(f=>({id:f.id,t:f.t})),sp,hs,hp,ex:expRank(ctx.g,a,ctx.disc),
+    top:res.fin.filter(f=>f.rk<=3).slice(0,5).map(f=>({id:f.id,t:f.t,rk:f.rk})),sp,hs,hp,ex:expRank(ctx.g,a,ctx.disc),
     rv:c.rival&&res.fin.concat(res.out).some(f=>f.id===c.rival)?(()=>{const r=res.fin.find(f=>f.id===c.rival);return r?r.rk:0})():null}}
 function coachLine(e){const d=e.rk?e.ex-e.rk:null;
   if(e.rk===1)return pick(['„Unglaublich! Das ist dein Tag!“','„Ich hab Gänsehaut. Genau dafür arbeiten wir.“','„Was für eine Fahrt – einfach perfekt!“']);
@@ -967,16 +967,18 @@ function coachLine(e){const d=e.rk?e.ex-e.rk:null;
   if(d>=5)return pick(['„Weit über den Erwartungen – sehr, sehr gut!“','„So fährt jemand, der nach oben will.“']);
   if(d>=0)return pick(['„Solide. Darauf können wir aufbauen.“','„Ordentlich – da ist aber noch mehr drin.“']);
   return pick(['„Heute nicht dein Tag. Wir finden raus, woran es lag.“','„Da fehlt noch was. Morgen wird trainiert.“'])}
-function podiumHtml(e){const order=[1,0,2];const h=[64,92,46];
-  return `<div class="podium">${order.map(k=>{const t=e.top[k];if(!t)return '<div></div>';const a=BYID[t.id];const me=isMe(t.id);
-    return `<div class="pod p${k+1} ${me?'me':''}"><div class="pn">${flag(a.nat)}<b>${esc(me?'DU':a.name.split(' ').pop())}</b><span>${k?'+'+(t.t-e.top[0].t).toFixed(2):fmtT(t.t)}</span></div><div class="pb" style="height:${h[k]}px">${k+1}</div></div>`}).join('')}</div>`}
+function podiumHtml(e){const H={1:92,2:64,3:46};const grp=r=>e.top.filter(t=>t.rk===r);
+  const cols=[grp(2),grp(1),grp(3)];if(!cols[0].length&&grp(1).length>1){cols[0]=grp(1).slice(1);cols[1]=grp(1).slice(0,1)}
+  const cell=t=>{const a=BYID[t.id];const me=isMe(t.id);return `<div class="pn">${flag(a.nat)}<b>${esc(me?'DU':a.name.split(' ').pop())}</b><span>${t.rk>1?'+'+(t.t-e.top[0].t).toFixed(2):fmtT(t.t)}</span></div>`};
+  return `<div class="podium">${cols.map(ts=>{if(!ts.length)return '<div></div>';const r=ts[0].rk;const me=ts.some(t=>isMe(t.id));
+    return `<div class="pod p${r} ${me?'me':''}">${ts.map(cell).join('')}<div class="pb" style="height:${H[r]}px">${r}</div></div>`}).join('')}</div>`}
 function cereCard(){const e=S.cere;const c=C();const x=cal(e.g)[e.i];const a=BYID[c.id];const nat=NATNAME[a.nat]||a.nat;
   const pod=e.rk&&e.rk<=3;const ev=e.wm;const medal=['🥇','🥈','🥉'][e.rk-1];
   let head,sub='';
   if(pod&&ev){head=`${medal} ${['Gold','Silber','Bronze'][e.rk-1]} bei ${ev==='Olympia'?'Olympia':'der WM'}!`;sub=e.rk===1?`${ev==='Olympia'?'Olympiasieger:in':'Weltmeister:in'} im ${DN[e.disc]} – die Hymne von ${nat} erklingt. 🎶`:`Eine Medaille für ${nat}!`}
-  else if(e.rk===1){head='🏆 SIEG!';sub=`Du gewinnst ${DN[e.disc]==='Slalom'?'den':'die'} ${DN[e.disc]} in ${esc(e.venue)}. Die Hymne von ${nat} erklingt. 🎶`}
+  else if(e.rk===1){head=e.top.filter(t=>t.rk===1).length>1?'🏆 SIEG – zeitgleich!':'🏆 SIEG!';sub=`Du gewinnst ${e.disc==='DH'?'die':'den'} ${DN[e.disc]} in ${esc(e.venue)}. Die Hymne von ${nat} erklingt. 🎶`}
   else if(pod){head=`${medal} Platz ${e.rk} – Podest!`;sub=`Nur ${e.gap.toFixed(2)} s hinter dem Sieg.`}
-  else if(e.rk){head=`🏁 Im Ziel: Platz ${e.rk}`;sub=`${e.gap>0?'+'+e.gap.toFixed(2)+' s auf den Sieg':''}${e.rk===4?' · nur '+(e.top[2]?(e.t-e.top[2].t).toFixed(2):'?')+' s aufs Podest – bitter!':''}`}
+  else if(e.rk){head=`🏁 Im Ziel: Platz ${e.rk}`;sub=`${e.gap>0?'+'+e.gap.toFixed(2)+' s auf den Sieg':''}${e.rk===4?' · nur '+(e.top.length?(e.t-e.top[e.top.length-1].t).toFixed(2):'?')+' s aufs Podest – bitter!':''}`}
   else if(e.st==='DNQ'){head='❌ Nicht für den 2. Lauf qualifiziert';sub='Nur die besten 30 fahren ins Finale.'}
   else{head=e.disc==='SL'?'💥 Eingefädelt – ausgeschieden':'💥 Sturz – ausgeschieden';sub=S[e.g].inj[c.id]>0?'🚑 Und es hat dich erwischt – du bist verletzt.':'Zum Glück ist dir nichts passiert.'}
   const hist=(arr,lb)=>arr&&arr.length?`<h3>${lb}</h3><div class="xpline">${arr.map(h=>`<span class="pill">${SECCH[h.ch][0].split(' ')[0]} ${esc(h.n)} <b class="${h.d<0?'ok':'bad'}">${h.d<0?'':'+'}${h.d.toFixed(2)}</b></span>`).join('')}</div>`:'';
@@ -989,7 +991,7 @@ function cereCard(){const e=S.cere;const c=C();const x=cal(e.g)[e.i];const a=BYI
    ${pod?podiumHtml(e)+`<p class="mut small">${e.rk===1?'🍾 Champagnerdusche auf dem obersten Treppchen!':'🍾 Champagner, Blumen, Fotos – du stehst oben bei den Besten.'}</p>`:''}
    ${win.length?`<div class="xpline">${win.map(w=>`<span class="pill gold">${w}</span>`).join('')}</div>`:''}
    ${splits}${hist(e.hp,e.two?'1. Lauf':'')}${hist(e.hs,e.two?'2. Lauf':'Deine Schlüsselstellen')}
-   ${!pod&&e.top[0]?`<h3>Podest</h3><table class="tl">${e.top.map((t,k)=>`<tr ${trc(t.id,'p'+(k+1))}><td>${k+1}.</td><td>${nm(t.id)}</td><td class="r mut">${k?'+'+(t.t-e.top[0].t).toFixed(2):fmtT(t.t)}</td></tr>`).join('')}</table>`:''}
+   ${!pod&&e.top[0]?`<h3>Podest</h3><table class="tl">${e.top.map((t,k)=>`<tr ${trc(t.id,'p'+t.rk)}><td>${t.rk}.</td><td>${nm(t.id)}</td><td class="r mut">${t.rk>1?'+'+(t.t-e.top[0].t).toFixed(2):fmtT(t.t)}</td></tr>`).join('')}</table>`:''}
    ${e.rv!=null&&c.rival&&BYID[c.rival]?`<p class="small">⚔️ Rivale ${esc(BYID[c.rival].name)}: ${e.rv?e.rv+'. Platz':'ausgeschieden'} ${e.rk&&(!e.rv||e.rk<e.rv)?'<b class="ok">– Duell gewonnen!</b>':e.rv&&(!e.rk||e.rv<e.rk)?'<b class="bad">– Duell verloren</b>':''}</p>`:''}
    <div class="coach">🗣 <b>Trainer:</b> ${coachLine(e)}</div>
    <p class="row-btn"><button class="btn racebtn" data-act="cereok">▶ Weiter</button><button class="btn" data-act="cereres">📋 Ergebnisliste</button></p></div>`}
@@ -1002,7 +1004,7 @@ function afterDraw(ctx){S.pend=null;if(ctx.disc==='DH')S.pend={kind:'dhtrain',ct
 function drawPick(k){const p=S.pend;if(!p||p.kind!=='draw'||p.pick!=null)return;const j=p.grp.indexOf(p.ctx.mb1.bib);[p.grp[k],p.grp[j]]=[p.grp[j],p.grp[k]];p.pick=k}
 function drawCard(){const p=S.pend;const ctx=p.ctx;const x=cal(ctx.g)[ctx.i];const mine=ctx.mb1.bib;const done=p.pick!=null;
   const who=b=>ctx.ids[b-1];const lo=Math.min(...p.grp),hi=Math.max(...p.grp);
-  const rule=ctx.two?`Die besten ${p.grp.length} der Startliste losen die Nummern ${lo}–${hi} unter sich aus.`:(lo===6?'Die Top 10 der Startliste losen die Nummern 6–15 aus – die begehrten Plätze im Mittelfeld der ersten Gruppe.':'Die Plätze 11–20 der Startliste losen die Nummern 1–5 und 16–20 aus.');
+  const rule=ctx.two?(lo===1?'Die besten 7 der Startliste (WCSL) losen die Nummern 1–7 unter sich aus.':'Die Plätze 8–15 der Startliste (WCSL) losen die Nummern 8–15 unter sich aus.'):(lo===6?'Die Top 10 der Startliste (WCSL) losen die Nummern 6–15 aus.':'Die Plätze 11–20 der Startliste (WCSL) losen die Nummern 1–5 und 16–20 aus.');
   const tip=ctx.two?(mine<=3?'Frühe Nummer: Du fährst auf der frischesten Piste. 👌':mine>=12?'Späte Nummer in der Gruppe – die Piste wird schon Spuren haben.':'Solide Nummer.'):(mine<=5?'Früh dran: Du bist eine:r der Ersten auf der Strecke – keine Infos von anderen.':mine>=16?'Spät in der Gruppe – du siehst die Zeiten der Favoriten schon.':'Die Wunschnummern! Piste perfekt, Infos von den Ersten.');
   return `<div class="card hero-card draw-card"><div class="eyebrow">🎲 Startnummern-Auslosung · ${DN[ctx.disc]} ${flag(x[2])} ${esc(x[1])}</div>
    <h2 class="big">${done?`Du hast die Nummer <span class="gold">${mine}</span> gezogen!`:'Zieh dein Startnummern-Los'}</h2><p class="mut">${rule}</p>
@@ -1671,10 +1673,10 @@ function wmP(g){return S[g].wmp||(S[g].wmp={races:{},med:{}})}
 function wmNext(g){if(S[g].wm)return undefined;const p=wmP(g);return DISC.find(d=>!p.races[d])}
 function wmMine(g,disc){const c=C();return c&&c.g===g&&wmField(g,disc).some(a=>isMe(a.id))}
 function wmRecord(g,disc,f,started){
-  const ev=eventOf(S.season);const p=wmP(g);p.races[disc]=f.slice(0,15).map(x=>({id:x.id,t:x.t}));
-  f.slice(0,3).forEach((x,k)=>{const n=BYID[x.id].nat;p.med[n]=p.med[n]||[0,0,0];p.med[n][k]++});
+  const ev=eventOf(S.season);const p=wmP(g);const RK=tieRks(f);p.races[disc]=f.slice(0,15).map((x,k)=>({id:x.id,t:x.t,rk:RK[k]}));
+  f.forEach((x,k)=>{if(RK[k]>3)return;const n=BYID[x.id].nat;p.med[n]=p.med[n]||[0,0,0];p.med[n][RK[k]-1]++});
   const c=C();if(c&&c.g===g){const xp=[];
-    if(started){const k=f.findIndex(x=>isMe(x.id));clog(`${ev[0]} ${DN[disc]}: ${k<0?'Ausfall':(k+1)+'. Platz'}`);(c.sres=c.sres||[]).push({v:ev[0]+' '+ev[1],d:disc,l:'WM',ev:ev[0],rk:k>=0?k+1:null,st:k<0?'DNF':null});
+    if(started){const k0=f.findIndex(x=>isMe(x.id));const k=k0<0?-1:RK[k0]-1;clog(`${ev[0]} ${DN[disc]}: ${k<0?'Ausfall':(k+1)+'. Platz'}`);(c.sres=c.sres||[]).push({v:ev[0]+' '+ev[1],d:disc,l:'WM',ev:ev[0],rk:k>=0?k+1:null,st:k<0?'DNF':null});
       if(k>=0&&k<3){c.medals[k]++;unlock('medal');popAdd(6-k);if(k===0){unlock('gold');if(ev[0]==='Olympia')c.olyGold=1;press(`${BYID[c.id].name} holt ${ev[0]}-GOLD im ${DN[disc]}!`)}else press(`${['','Silber','Bronze'][k]} für ${BYID[c.id].name} im ${DN[disc]}`);
         (c.tasks||[]).forEach(t=>{if(t.k==='medal'&&!t.done)taskReward(c,t)});toast(`${['🥇','🥈','🥉'][k]} ${ev[0]}-Medaille im ${DN[disc]}!`);earn('Prämien',[50000,30000,20000][k]);xp.push([`${ev[0]}-Medaille`,25])}
       else if(k>=0)xp.push([`${ev[0]}: Platz ${k+1}`,8]);else xp.push([`${ev[0]}-Erfahrung`,4]);
@@ -1697,7 +1699,7 @@ function prepWM(g,i,disc){
   return{g,i,disc,venue:ev[1],vnat:ev[2],base,wx:wx.k,two,ids:bibOrder(list,two,wc).map(a=>a.id),wm:true};
 }
 function finalizeWM(ctx){
-  let fin=ctx.two?ctx.r2:ctx.r1.map(x=>({...x,t:x.t1}));RISKOV=null;fin.sort((x,y)=>x.t-y.t);fin.forEach((x,k)=>{x.rk=k+1;x.pts=0});
+  let fin=ctx.two?ctx.r2:ctx.r1.map(x=>({...x,t:x.t1}));RISKOV=null;fin.sort((x,y)=>x.t-y.t);const RK=tieRks(fin);fin.forEach((x,k)=>{x.rk=RK[k];x.pts=0});
   const me=C().id;const o=ctx.out.find(x=>x.id===me);
   if(o&&o.st!=='DNQ'&&rnd()<(ctx.disc==='DH'?.12:ctx.disc==='SG'?.08:.03)*(1+(C().body||0)/80))injureMe(ctx.g,ctx.disc,ctx.venue);
   wmRecord(ctx.g,ctx.disc,fin,true);
@@ -1805,6 +1807,9 @@ function nextSeason(){
 // =============== UI-HELFER ===============
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hs=t=>Math.round(t*100);
+const tieRk=(arr,t,get=x=>x.t)=>arr.filter(x=>hs(get(x))<hs(t)).length+1;
+const tieRks=(arr,get=x=>x.t)=>arr.map((x,k)=>k&&hs(get(x))===hs(get(arr[k-1]))?null:k+1).map((v,k,a)=>{let j=k;while(a[j]==null)j--;return a[j]});
 const fmtT=t=>{if(t==null)return'';const m=Math.floor(t/60),s=t-m*60;return(m?m+':'+(s<10?'0':''):'')+s.toFixed(2)};
 const fmtD=d=>d<=0.0001?'':'+'+d.toFixed(2);
 const fmtCHF=n=>Math.round(n).toLocaleString('de-CH')+' CHF';
@@ -1840,7 +1845,7 @@ function formStr(id){const f=S[gOf(id)].form[id]||0;return f>0.7?'Form ↑':f<-0
 function stTable(st,disc){
   if(!st.length)return '<p class="mut">Noch keine Punkte vergeben.</p>';const lead=st[0].pts;
   return `<div class="scroll"><table class="tl"><tr><th>#</th><th>Name</th><th class="r">Punkte</th><th class="r">Rückst.</th><th class="r hm">Siege</th><th class="r hm">Podeste</th>${disc?'':DISC.map(d=>`<th class="r hm">${d}</th>`).join('')}</tr>
-  ${st.map((o,k)=>`<tr ${trc(o.id,'p'+(k+1))}><td>${k+1}.</td><td>${nm(o.id)}</td><td class="r"><b>${o.pts}</b></td><td class="r mut">${k?'-'+(lead-o.pts):''}</td><td class="r hm">${o.w||''}</td><td class="r hm">${o.pod||''}</td>${disc?'':DISC.map(d=>`<td class="r mut hm">${o.d[d]||''}</td>`).join('')}</tr>`).join('')}</table></div>`;
+  ${st.map((o,k)=>{const rk=st.filter(z=>z.pts>o.pts).length+1;return `<tr ${trc(o.id,'p'+rk)}><td>${rk}.</td><td>${nm(o.id)}</td><td class="r"><b>${o.pts}</b></td><td class="r mut">${k?'-'+(lead-o.pts):''}</td><td class="r hm">${o.w||''}</td><td class="r hm">${o.pod||''}</td>${disc?'':DISC.map(d=>`<td class="r mut hm">${o.d[d]||''}</td>`).join('')}</tr>`}).join('')}</table></div>`;
 }
 function rNations(){
   const m=nations('M'),w=nations('W');const all=new Set([...Object.keys(m),...Object.keys(w)]);
@@ -1850,7 +1855,7 @@ function rNations(){
 function wmTables(g){
   const wm=S[g].wm||S[g].wmp;if(!wm)return '';const med=Object.entries(wm.med).sort((a,b)=>b[1][0]-a[1][0]||b[1][1]-a[1][1]||b[1][2]-a[1][2]);
   return `<h3>Medaillenspiegel</h3><table><tr><th>Nation</th><th class="r">🥇</th><th class="r">🥈</th><th class="r">🥉</th></tr>${med.map(([n,c])=>`<tr><td>${flag(n)} ${NATNAME[n]||n}</td><td class="r">${c[0]}</td><td class="r">${c[1]}</td><td class="r">${c[2]}</td></tr>`).join('')}</table>
-  <div class="g2">${DISC.filter(d=>wm.races[d]).map(d=>{const f=wm.races[d];return `<div><h3>${DN[d]}</h3><table>${f.slice(0,8).map((x,k)=>`<tr ${trc(x.id,'p'+(k+1))}><td>${k<3?['🥇','🥈','🥉'][k]:k+1+'.'}</td><td>${nm(x.id)}</td><td class="r mut">${k?fmtD(x.t-f[0].t):fmtT(x.t)}</td></tr>`).join('')}</table></div>`}).join('')}</div>`;
+  <div class="g2">${DISC.filter(d=>wm.races[d]).map(d=>{const f=wm.races[d];return `<div><h3>${DN[d]}</h3><table>${f.slice(0,8).map((x,k)=>{const rk=x.rk||tieRks(f)[k];return `<tr ${trc(x.id,'p'+rk)}><td>${rk<=3?['🥇','🥈','🥉'][rk-1]:rk+'.'}</td><td>${nm(x.id)}</td><td class="r mut">${k?fmtD(x.t-f[0].t):fmtT(x.t)}</td></tr>`}).join('')}</table></div>`}).join('')}</div>`;
 }
 function rAth(){
   const q=AFILT.toLowerCase();const st=standings(G);const pos={};st.forEach((o,k)=>pos[o.id]=k+1);
@@ -2064,7 +2069,7 @@ function liveView(){
   const c=cal(G)[LIVE.i];const x=LIVE.last;const b=LIVE.board;const r=S[G].res[LIVE.i];const wx=WX.find(w=>w.k===r.wx);
   let fin='<span class="mut">Gleich geht’s los…</span>';
   if(x){if(x.dnf)fin=`${nm(x.id)}<div class="t" style="color:var(--bad)">AUSFALL</div>`;
-    else{const rk=b.indexOf(x)+1;const d=x.t-b[0].t;
+    else{const rk=tieRk(b,x.t);const d=x.t-b[0].t;
       fin=`${nm(x.id)}<div class="t">${fmtT(x.t)}</div><div class="d ${rk===1?'neg':'pos'}">${rk===1?(b.length>1?'Neue Bestzeit −'+(b[1].t-x.t).toFixed(2):'Erste Zeit'):'+'+d.toFixed(2)} · Platz ${rk}</div>`}}
   const meIn=C()&&LIVE.seq.some(s=>isMe(s.id));
   return `<div class="card"><h2>🔴 LIVE · ${DN[c[3]]} ${flag(c[2])} ${esc(c[1])} ${LIVE.two?'· 2. Durchgang (Gesamtzeit)':''} <span class="wx">· ${wx.n}</span></h2>
@@ -2418,13 +2423,13 @@ function prevRunner(p){const ctx=p.ctx;const me=C().id;const rv=C().rival;let ou
   return out}
 function breakCard(){
   const p=S.pend;const ctx=p.ctx;const c=cal(ctx.g)[ctx.i];const me=C().id;const wx=WX.find(w=>w.k===ctx.wx);
-  const r1=ctx.r1;const k=r1.findIndex(x=>x.id===me);const lead=r1[0]?r1[0].t1:0;const my=k>=0?r1[k].t1:null;
+  const r1=ctx.r1;const k=r1.findIndex(x=>x.id===me);const lead=r1[0]?r1[0].t1:0;const my=k>=0?r1[k].t1:null;const R1=tieRks(r1,x=>x.t1);const myRk=k>=0?R1[k]:null;
   const dnq=k>=30,dnf=k<0;
   const gap=i=>r1[i]?(my-r1[i].t1):0;
   let head,sub;
   if(dnf){head='💥 Ausgeschieden';sub='Für dich ist das Rennen vorbei – der 2. Durchgang läuft ohne dich.'}
-  else if(dnq){head=`Platz ${k+1} – nicht qualifiziert`;sub=`Auf Platz 30 fehlten ${gap(29).toFixed(2)} s. Nur die besten 30 fahren den 2. Lauf.`}
-  else{head=`Platz ${k+1}${k?` · +${(my-lead).toFixed(2)} s`:' · Bestzeit!'}`;sub=`Du bist im Finale und startest im 2. Lauf als ${ctx.mb2.o2}. von ${Math.min(30,r1.length)} (umgekehrte Reihenfolge – die Führenden zuletzt).`}
+  else if(dnq){head=`Platz ${myRk} – nicht qualifiziert`;sub=`Auf Platz 30 fehlten ${gap(29).toFixed(2)} s. Nur die besten 30 fahren den 2. Lauf.`}
+  else{head=`Platz ${myRk}${myRk>1?` · +${(my-lead).toFixed(2)} s`:hs(my)===hs(r1[1]?r1[1].t1:-1)?' · zeitgleiche Bestzeit!':' · Bestzeit!'}`;sub=`Du bist im Finale und startest im 2. Lauf als ${ctx.mb2.o2}. von ${Math.min(30,r1.length)} (umgekehrte Reihenfolge – die Führenden zuletzt).`}
   const rows=[];const rv=C().rival;
   r1.slice(0,10).forEach((x,i)=>rows.push([i,x]));
   if(k>=10)rows.push([k,r1[k]]);
@@ -2438,7 +2443,7 @@ function breakCard(){
   return `<div class="card break-card"><div class="eyebrow">⏸ Pause nach dem 1. Durchgang · ${DN[ctx.disc]} ${flag(c[2])} ${esc(c[1])} · ${wx.n}</div>
    <h2 class="big">${head}</h2><p class="mut">${sub}</p>${ctx.wxOld?`<div class="lastsec badbg">🌦 <b>Wetterumschwung!</b> ${WX.find(w=>w.k===ctx.wxOld).n} → ${WX.find(w=>w.k===ctx.wx).n}${ctx.setup?` · ${ctx.setup.txt}`:''}</div>`:''}${gaps}
    ${p.hist&&p.hist.length?`<h3>Dein 1. Lauf</h3><div class="xpline">${p.hist.map(h=>`<span class="pill">${SECCH[h.ch][0].split(' ')[0]} ${esc(h.n)} <b class="${h.d<0?'ok':'bad'}">${h.d<0?'':'+'}${h.d.toFixed(2)}</b></span>`).join('')}</div>`:''}
-   <h3>Zwischenstand</h3><table class="tl">${rows.map(([i,x])=>`<tr ${trc(x.id,'p'+(i+1))}><td>${i+1}.</td><td>${nm(x.id)}${x.id===rv?' <span class="pill">Rivale</span>':''}</td><td class="r mut">${i?'+'+(x.t1-lead).toFixed(2):fmtT(x.t1)}</td></tr>`).join('')}</table>
+   <h3>Zwischenstand</h3><table class="tl">${rows.map(([i,x])=>`<tr ${trc(x.id,'p'+R1[i])}><td>${R1[i]}.</td><td>${nm(x.id)}${x.id===rv?' <span class="pill">Rivale</span>':''}</td><td class="r mut">${i?'+'+(x.t1-lead).toFixed(2):fmtT(x.t1)}</td></tr>`).join('')}</table>
    <p class="mut small">${ctx.out.filter(o=>o.st==='DNF1').length} Ausfälle im 1. Lauf · ${Math.min(30,r1.length)} im Finale</p>
    <p class="row-btn"><button class="btn racebtn" data-act="brk">${ctx.mb2?'▶ Weiter zum 2. Durchgang':'🏁 Rennen beenden'}</button></p></div>`;
 }
