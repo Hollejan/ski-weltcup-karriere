@@ -64,6 +64,7 @@ tr.me td{background:rgba(244,196,48,.13)}
 .podium .g{height:110px;border-top:3px solid var(--gold)}.podium .s{height:90px;border-top:3px solid var(--silver)}.podium .b{height:75px;border-top:3px solid var(--bronze)}
 .podium b{display:block;font-size:14px}.podium span{font-size:12px;color:var(--mut)}
 .subnav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center}
+.subnav.sub2{margin-top:-4px}.subnav.sub2 .chip{font-size:12px;padding:4px 9px;background:transparent}
 .chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--mut);cursor:pointer;font:inherit;font-size:13px}
 .chip.on{color:#fff;border-color:var(--ice);background:#1f3a55}
 .news{font-size:13px}.news div{padding:5px 0;border-bottom:1px dashed var(--line)}
@@ -871,7 +872,7 @@ function resolveSection(ch,quiet,bonus=0){
 function continueBreak(quiet){const p=S.pend;if(!p||p.kind!=='break')return;const ctx=p.ctx;const me=C().id;
   if(ctx.mb2){startRunPend(ctx,2);if(!quiet){save();render();window.scrollTo(0,0)}return}
   S.pend=null;const res=finalize(ctx);syncOther(ctx.g,ctx.i);SEL[ctx.g]=ctx.i;
-  if(!quiet){TAB='races';RV='detail';save();render();window.scrollTo(0,0)}}
+  if(!quiet){TAB='races';SUBT.races='cal';RV='detail';save();render();window.scrollTo(0,0)}}
 function finishMyRun(dnf,quiet){
   const p=S.pend;const ctx=p.ctx;const me=C().id;
   ctx.decs=(ctx.decs||[]).concat(p.hist.map(h=>SECCH[h.ch][0].split(' ')[0]));
@@ -883,7 +884,7 @@ function finishMyRun(dnf,quiet){
     if(dnf)ctx.out.push({id:me,st:'DNF2',t1:ctx.mb2.t1,bib:ctx.mb2.bib});else{const t2=p.t0+p.delta;ctx.r2.push({...ctx.mb2,t2,t:ctx.mb2.t1+t2})}
   }
   S.pend=null;const res=finalize(ctx);syncOther(ctx.g,ctx.i);SEL[ctx.g]=ctx.i;
-  if(!quiet){const m=res.fin.find(f=>f.id===me);toast(m?`🏁 Im Ziel: Platz ${m.rk}${m.pts?` · +${m.pts} Punkte`:''}`:'💥 Ausgeschieden');TAB='races';RV='detail'}
+  if(!quiet){const m=res.fin.find(f=>f.id===me);toast(m?`🏁 Im Ziel: Platz ${m.rk}${m.pts?` · +${m.pts} Punkte`:''}`:'💥 Ausgeschieden');TAB='races';SUBT.races='cal';RV='detail'}
 }
 function simNext(g,inter){
   if(S.pend&&S.pend.ctx.g===g){if(inter)return 'pause';resolvePend(C()?C().risk:'ctrl')}
@@ -1800,7 +1801,7 @@ function startLive(){
   playLive(G,i);
 }
 function playLive(g,i){
-  const r=S[g].res[i];let seq;G=g;TAB='races';RV='detail';SEL[g]=i;
+  const r=S[g].res[i];let seq;G=g;TAB='races';SUBT.races='cal';RV='detail';SEL[g]=i;
   if(r.two){const q=r.fin.concat(r.out.filter(o=>o.st==='DNF2')).sort((a,b)=>b.t1-a.t1);seq=q.map(x=>({id:x.id,t:x.t,dnf:!x.t2}))}
   else seq=r.fin.map(x=>({id:x.id,t:x.t,bib:x.bib})).concat(r.out.map(o=>({id:o.id,dnf:true,bib:o.bib}))).sort((a,b)=>a.bib-b.bib).filter(x=>x.bib<=40||isMe(x.id));
   LIVE={g,i,seq,step:0,board:[],last:null,speed:700,two:r.two};render();tick();
@@ -1830,6 +1831,9 @@ function liveView(){
 
 // =============== NEUES UI (nur Karriere) ===============
 TAB='home';let STAB='overall',RV='list';
+const SUBT={me:'skills',biz:'staff',races:'cal',career:'sum'};
+function subnav(list){const cur=SUBT[TAB];return `<div class="subnav">${list.map(([k,t])=>`<button class="chip ${cur===k?'on':''}" data-sub="${k}">${t}</button>`).join('')}</div>`}
+const go=(t,sub)=>`data-go="${t}${sub?':'+sub:''}"`;
 const dkey=md=>{const[m,d]=md.split('-').map(Number);return (m<7?m+12:m)*100+d};
 function syncOther(g,i){const og=g==='M'?'W':'M';const dk=dkey(cal(g)[i][0]);let j;while((j=nextIdx(og))>=0&&dkey(cal(og)[j][0])<=dk)simNext(og,false)}
 function step(){if(C().trainPending)return 'train';if(C().event||C().summer)return 'event';const g=C().g;const i=nextIdx(g);if(i<0)return -1;const x=simNext(g,true);if(x!=='pause'){SEL[g]=i;syncOther(g,i)}return x}
@@ -1846,9 +1850,13 @@ function render(){
   const app=$('#app');
   if(!C()){app.innerHTML=rCreate();bind();return}
   G=C().g;document.body.dataset.phase=phase();requestAnimationFrame(()=>{const b=document.querySelector('.choicebar');document.body.style.setProperty('--cbh',(b?b.offsetHeight:0)+'px')});
-  app.innerHTML=rTop()+`<main>${({home:rHome,train:rTrain,races:rRaces,stand:rStand,career:rCareerTab})[TAB]()}</main>`;
+  if(TAB==='train')TAB='me';if(TAB==='stand'){TAB='races';SUBT.races='stand'}
+  const V={home:rHome,me:rTrain,biz:rTrain,races:rWorld,career:rCareerTab};if(!V[TAB])TAB='home';
+  app.innerHTML=rTop()+`<main>${V[TAB]()}</main>`;
   bind();
+  document.querySelectorAll('.subnav').forEach(n=>{const on=n.querySelector('.chip.on');if(on&&n.scrollWidth>n.clientWidth)n.scrollLeft=on.offsetLeft-n.clientWidth/2+on.offsetWidth/2});
 }
+const NAV=[['home','🏠','Heute','Heute'],['me','⛷️','Ich','Ich & Training'],['biz','💼','Management','Management'],['races','🏆','Weltcup','Weltcup'],['career','🏅','Karriere','Karriere']];
 function rTop(){
   const c=C();const a=BYID[c.id];const g=c.g;const st=standings(g);const k=st.findIndex(o=>o.id===c.id);
   const ni=nextIdx(g);const done=ni<0;const pd=!!S.pend;const inj=S[g].inj[c.id]>0;
@@ -1870,8 +1878,8 @@ function rTop(){
       <div><span>Fitness</span><b class="${inj?'bad':c.fat>55?'bad':c.fat>40?'warn':'ok'}">${inj?'verletzt':Math.round(100-c.fat)+' %'}</b></div>
     </div>
     <div class="acts">${act}</div></header>
-    <nav class="bnav">${[['home','🏠','Start'],['train','👔','Team'],['races','🗓','Rennen'],['stand','📊','Tabelle'],['career','🏅','Karriere']].map(([k2,i,t])=>`<button data-tab="${k2}" class="${TAB===k2?'on':''}"><span>${i}</span>${t}</button>`).join('')}</nav>
-    <nav id="tabs">${[['home','🏠 Übersicht'],['train','👔 Team & Training'],['races','🗓 Rennen'],['stand','📊 Wertungen'],['career','🏅 Karriere']].map(([k2,t])=>`<button data-tab="${k2}" class="${TAB===k2?'on':''}">${t}</button>`).join('')}</nav>`;
+    <nav class="bnav">${NAV.map(([k2,i,t])=>[k2,i,t]).map(([k2,i,t])=>`<button data-tab="${k2}" class="${TAB===k2?'on':''}"><span>${i}</span>${t}</button>`).join('')}</nav>
+    <nav id="tabs">${NAV.map(([k2,i,t,l])=>[k2,i+' '+l]).map(([k2,t])=>`<button data-tab="${k2}" class="${TAB===k2?'on':''}">${t}</button>`).join('')}</nav>`;
 }
 // ---------- Übersicht ----------
 function phase(){const c=C();return S.pend?'race':c&&c.trainPending?'train':c&&c.summer?'summer':'prep'}
@@ -1927,11 +1935,11 @@ function rHome(){
   const goal=careerGoal(c);const rv=c.rival&&BYID[c.rival];const h2=c.h2h||{w:0,l:0};
   h+=`<div class="g3">
    <div class="card"><h2>Körper & Kopf</h2>${bar('Fitness',100-c.fat,'f2')}${bar('Belastung',c.load||0,'f')}${bar('Kondition',c.kond)}${bar('Mental',c.mental)}
-    ${c.rust>0.05?`<p class="mut small">💪 Comeback-Rost: −${c.rust.toFixed(1)}</p>`:''}${wearBlock(c)}<p class="mut small">Saisonbelastung: ${loadLbl(c.load||0)}. Über 50 erholst du dich schlechter, über 60 wirst du langsamer und verletzt dich leichter. Ruhetage und ausgelassene Rennen bauen sie ab.</p></div>
+    ${c.rust>0.05?`<p class="mut small">💪 Comeback-Rost: −${c.rust.toFixed(1)}</p>`:''}${wearBlock(c)}<p class="mut small">Saisonbelastung: ${loadLbl(c.load||0)}. Über 50 erholst du dich schlechter, über 60 wirst du langsamer und verletzt dich leichter. Ruhetage und ausgelassene Rennen bauen sie ab.</p><p><button class="btn sm ghost" ${go('me','skills')}>📈 Werte →</button> <button class="btn sm ghost" ${go('me','set')}>⚙️ Renneinsätze →</button></p></div>
    <div class="card"><h2>🎯 Saisonziel</h2><p class="lead">${goal.ok?'✅':'⬜'} ${goal.t}</p><p class="mut">${goal.p} · Bonus ${isLow(c)?'10.000':'40.000'} CHF</p>${c.fails?'<p class="bad small"><b>⚠️ Verwarnt:</b> Verfehlst du das Ziel erneut, fliegst du aus dem Kader.</p>':''}</div>
-   <div class="card"><h2>💰 Konto & Fans</h2><p class="lead ${c.money<0?'bad':''}"><b>${fmtCHF(c.money)}</b></p><p class="small">📣 Beliebtheit ${Math.round(c.pop||10)} – ${popLabel(c.pop||10)}</p>${c.own&&Object.keys(c.own).length?`<p class="small">${Object.keys(c.own).filter(k=>SHOPBY[k]).map(k=>SHOPBY[k][2].split(' ')[0]).join(' ')} <span class="mut">Besitz</span></p>`:''}<p class="mut small">Laufende Kosten ca. ${fmtCHF(dailyCost())} pro Renntag${c.money<0?' · <b class="bad">Im Minus: Betreuer kündigen!</b>':''}</p></div>
+   <div class="card"><h2>💰 Konto & Fans</h2><p class="lead ${c.money<0?'bad':''}"><b>${fmtCHF(c.money)}</b></p><p class="small">📣 Beliebtheit ${Math.round(c.pop||10)} – ${popLabel(c.pop||10)}</p>${c.own&&Object.keys(c.own).length?`<p class="small">${Object.keys(c.own).filter(k=>SHOPBY[k]).map(k=>SHOPBY[k][2].split(' ')[0]).join(' ')} <span class="mut">Besitz</span></p>`:''}<p class="mut small">Laufende Kosten ca. ${fmtCHF(dailyCost())} pro Renntag${c.money<0?' · <b class="bad">Im Minus: Betreuer kündigen!</b>':''}</p><p><button class="btn sm ghost" ${go('biz','fin')}>💰 Finanzen →</button> <button class="btn sm ghost" ${go('biz','shop')}>🛍 Besitz →</button></p></div>
   </div>`;
-  h+=`<div class="g2">${tasksCard()}${pressCard(3)}</div><div class="g2"><div class="card"><h2>Deine letzten Rennen</h2>${myResults(8)}</div><div class="card"><h2>Weltcup-Ticker</h2><div class="news">${S[g].news.slice(0,8).map(n=>`<div>${n}</div>`).join('')||'<span class="mut">Noch nichts passiert.</span>'}</div></div></div>`;
+  h+=`<div class="g2">${tasksCard()}<div class="card"><h2>Deine letzten Rennen</h2>${myResults(5)}<p><button class="btn sm ghost" ${go('races','cal')}>🗓 Zum Kalender →</button> <button class="btn sm ghost" ${go('races','stand')}>📊 Wertungen →</button></p></div></div>`;
   return h;
 }
 function rFin(){
@@ -2054,16 +2062,17 @@ function injuryCard(c){const g=c.g;const inj=S[g].inj[c.id];
   if(inj>0)return `<div class="card alert"><h2>🚑 Du bist verletzt</h2></div>`;
   return '';}
 // ---------- Training & Team ----------
-let TST='skills';
 function rTrain(){
   const c=C();const a=BYID[c.id];
-  const chips=[['skills','🎿 Fähigkeiten'],['staff','👔 Betreuer'],['spons','💶 Sponsoren'],['fin','💰 Finanzen'],['shop','🛍 Besitz'],['team','⚔️ Nation & Rivale']];
+  const chips=TAB==='me'?[['skills','📈 Werte'],['perks','⭐ Fähigkeiten'],['set','⚙️ Einstellungen'],['team','⚔️ Rivale & Nation']]
+    :[['staff','👔 Betreuer'],['spons','💶 Sponsoren'],['fin','💰 Finanzen'],['shop','🛍 Besitz']];
+  if(!chips.some(x=>x[0]===SUBT[TAB]))SUBT[TAB]=chips[0][0];const TST=SUBT[TAB];
   let body='';
   if(TST==='skills'){
   const stars='★'.repeat(c.stars)+'☆'.repeat(5-c.stars);
   const delta=d=>{const p=c.prev[d];if(p==null)return'';const x=a.r[d]-p;return x>0.05?`<span class="ok small"> +${x.toFixed(1)}</span>`:x<-0.05?`<span class="bad small"> ${x.toFixed(1)}</span>`:''};
   const drk={};DISC.forEach(d=>{const kk=standings(c.g,d).findIndex(o=>o.id===c.id);drk[d]=kk<0?'–':(kk+1)+'.'});
-  body=perkCard()+`<div class="g2" style="margin-top:12px">
+  body=`<div class="g2" style="margin-top:0">
    <div class="card"><h2>Werte <span class="mut small">Talent ${stars}</span></h2>
     ${DISC.map(d=>`<div class="rat"><span class="tag ${d}">${d}</span><div class="barwrap"><i style="width:${clamp((a.r[d]-55)/45*100,0,100)}%"></i></div><span class="r">${a.r[d].toFixed(1)}${delta(d)}</span></div>`).join('')}
     ${bar('Kondition',c.kond)}${bar('Mental',c.mental)}${bar('Fitness',100-c.fat,'f2')}
@@ -2072,10 +2081,14 @@ function rTrain(){
    <div class="card"><h2>Trainingspunkte <span class="warn">${c.xp||0} XP</span></h2>
     <p class="mut small">XP pro Rennen: Ziel +8, Weltcuppunkte ÷4, Podest +12, Sieg +10, Erwartung übertroffen +6, Meilenstein +15. Ohne Start: Trainingstag (+10 XP, +40 % Effekt).</p>
     ${(c.tlog||[]).length?`<h3>Letzte Einheiten</h3><div class="news small">${c.tlog.slice(0,5).map(t=>`<div>${esc(t)}</div>`).join('')}</div>`:''}
-    <h3>Renneinsätze</h3><div class="opt">${DISC.map(d=>`<button class="chip ${c.starts[d]?'on':''}" data-start="${d}" ${a.r[d]<minR(c)?'disabled':''}>${DN[d]}</button>`).join('')}</div>
-    <h3>Schlüsselstellen</h3><div class="opt"><button class="chip ${c.interactive!==false?'on':''}" data-inter="1">Selbst entscheiden</button><button class="chip ${c.interactive===false?'on':''}" data-inter="0">Automatisch</button></div>
     <h3>Fähigkeiten</h3><div class="xpline">${Object.keys(c.perks||{}).map(k=>`<span class="pill">${PERKS[k][0]}</span>`).join('')||'<span class="mut small">noch keine</span>'}</div>
-    <h3>Risiko bei Automatik</h3><div class="opt">${Object.entries(RISK).map(([k2,t])=>`<button class="chip ${c.risk===k2?'on':''}" data-risk="${k2}">${t}</button>`).join('')}</div></div></div>`;
+    <p><button class="btn sm ghost" data-sub="perks">⭐ Fähigkeiten freischalten →</button></p></div></div>`;
+  }else if(TST==='perks'){body=perkCard().replace('style="margin-top:12px"','');
+  }else if(TST==='set'){
+  body=`<div class="card"><h2>⚙️ Renneinstellungen</h2>
+    <h3>Renneinsätze</h3><p class="mut small">In welchen Disziplinen du startest. Auslassen spart Kraft und baut Belastung ab.</p><div class="opt">${DISC.map(d=>`<button class="chip ${c.starts[d]?'on':''}" data-start="${d}" ${a.r[d]<minR(c)?'disabled':''}>${DN[d]}</button>`).join('')}</div>
+    <h3>Schlüsselstellen</h3><div class="opt"><button class="chip ${c.interactive!==false?'on':''}" data-inter="1">Selbst entscheiden</button><button class="chip ${c.interactive===false?'on':''}" data-inter="0">Automatisch</button></div>
+    <h3>Risiko bei Automatik</h3><div class="opt">${Object.entries(RISK).map(([k2,t])=>`<button class="chip ${c.risk===k2?'on':''}" data-risk="${k2}">${t}</button>`).join('')}</div></div>`;
   }else if(TST==='staff'){
     body=`<div class="card" style="margin-bottom:12px"><p style="margin:0">Konto <b>${fmtCHF(c.money)}</b> · Gehälter <b>${fmtCHF(salaries())}</b> pro Saison <span class="mut small">(anteilig an jedem Renntag, Ablöse sofort)</span></p></div>
     <div class="stgrid">${Object.entries(ROLES).map(([r,R])=>{const cur=c.staff[r]?SBY[c.staff[r]]:null;
@@ -2090,7 +2103,7 @@ function rTrain(){
   }else if(TST==='fin')body=rFin();
   else if(TST==='shop')body=shopCard(c);
   else body=rivalTeam(c,a);
-  return `<div class="subnav">${chips.map(([k,t])=>`<button class="chip ${TST===k?'on':''}" data-tst="${k}">${t}</button>`).join('')}</div>${body}`;
+  return subnav(chips)+body;
 }
 
 function prevRunner(p){const ctx=p.ctx;const me=C().id;const rv=C().rival;let out='';
@@ -2165,31 +2178,43 @@ function rRaces(){
   const banner=C().trainPending&&!LIVE?`<div class="card train-card" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px"><b>🏋️ Training steht an</b><button class="btn gold sm" data-tab="home">Training wählen →</button></div>`:'';
   return banner+`<div class="grid ${RV==='detail'?'show-detail':'show-list'}"><div class="card cal">${rows}</div><div class="detail"><button class="btn sm ghost mobonly" data-rv="list" style="margin-bottom:10px">← Kalender</button>${LIVE&&LIVE.g===g?liveView():raceDetail(SEL[g])}</div></div>`;
 }
+// ---------- Weltcup (Kalender, Wertungen, Großereignis, Nationen, Feld, Ticker) ----------
+function rWorld(){const g=C().g;const ev=eventOf(S.season);
+  const ch=[['cal','🗓 Kalender'],['stand','📊 Wertungen'],['wm','🏅 '+(ev?ev[0]:'Großereignis')],['nations','🌍 Nationen'],['field','👥 Fahrerfeld'],['news','📰 Ticker']];
+  const T=SUBT.races;let b;
+  if(T==='cal')b=rRaces();
+  else if(T==='stand'){if(!['overall'].concat(DISC).includes(STAB))STAB='overall';b=rStand()}
+  else if(T==='news')b=`<div class="card"><h2>📰 Weltcup-Ticker</h2><div class="news">${S[g].news.slice(0,40).map(n=>`<div>${n}</div>`).join('')||'<span class="mut">Noch nichts passiert.</span>'}</div></div>`;
+  else{STAB=T;b=rStand()}
+  return subnav(ch)+b}
 // ---------- Wertungen ----------
 function rStand(){
-  const g=C().g;const chips=[['overall','Gesamt'],['DH','Abfahrt'],['SG','Super-G'],['GS','Riesentorlauf'],['SL','Slalom'],['nations','Nationen'],['wm','Großereignis'],['field','Fahrerfeld']];
+  const g=C().g;const chips=[['overall','Gesamt'],['DH','Abfahrt'],['SG','Super-G'],['GS','Riesentorlauf'],['SL','Slalom']];
   let body;
   if(STAB==='overall'){const st=standings(g);const rem=remaining(g);body=`<div class="card"><h2>${!rem&&st[0]?'🏆 Große Kristallkugel: '+nm(st[0].id):'Gesamtweltcup'} <span class="mut small">· noch ${rem} Rennen (max. ${rem*100} Pkt)${decided(g)&&rem?' · entschieden':''}</span></h2>${stTable(st)}</div>`}
   else if(DN[STAB]){const st=standings(g,STAB);const rem=remaining(g,STAB);const dec=decided(g,STAB);body=`<div class="card"><h2>${dec&&st[0]?'🔮 Kleine Kugel: '+nm(st[0].id):DN[STAB]+'-Weltcup'} <span class="mut small">· noch ${rem} Rennen</span></h2>${stTable(st,STAB)}</div>`}
   else if(STAB==='nations')body=rNations();
   else if(STAB==='wm'){const ev=eventOf(S.season);body=!ev?`<div class="card"><h2>Kein Großereignis in ${sLbl()}</h2><p class="mut">WM und Olympia wechseln sich ab.</p></div>`:`<div class="card"><h2>🏅 ${ev[0]} ${S.season+1} · ${esc(ev[1])}</h2>${S[g].wm||S[g].wmp?wmTables(g):'<p class="mut">Findet im Februar statt.</p>'}</div>`}
   else body=rAth();
-  return `<div class="subnav">${chips.map(([k,t])=>`<button class="chip ${STAB===k?'on':''}" data-stab="${k}">${t}</button>`).join('')}</div>${body}`;
+  return (chips.some(x=>x[0]===STAB)?`<div class="subnav sub2">${chips.map(([k,t])=>`<button class="chip ${STAB===k?'on':''}" data-stab="${k}">${t}</button>`).join('')}</div>`:'')+body;
 }
 // ---------- Karriere ----------
 function rCareerTab(){
   const c=C();const a=BYID[c.id];const globes=c.seasons.reduce((n,s)=>n+s.best.filter(b=>b===1).length,0);
-  return `<div class="kpirow">
+  const ch=[['sum','📋 Bilanz'],['ach','🏅 Meilensteine'],['press','📰 Presse'],['log','📔 Tagebuch'],['hist','📜 Historie']];
+  const T=SUBT.career;let b;
+  if(T==='ach')b=`<div class="card"><h2>Meilensteine (${Object.keys(c.ach).length}/${ACH.length})</h2><div class="ach">${ACH.map(([k2,t,d])=>`<div class="${c.ach[k2]?'on':''}"><b>${c.ach[k2]?'🏅':'🔒'} ${t}</b>${d}</div>`).join('')}</div></div>`;
+  else if(T==='press')b=pressCard(30);
+  else if(T==='log')b=`<div class="card"><h2>Tagebuch</h2><div class="news scroll" style="max-height:none">${c.log.slice(0,60).map(l=>`<div>${esc(l)}</div>`).join('')}</div></div>`;
+  else if(T==='hist')b=rHist();
+  else b=`<div class="kpirow">
     <div class="card"><span>Weltcupsiege</span><b>${c.wins}</b></div><div class="card"><span>Podeste</span><b>${c.pods}</b></div>
     <div class="card"><span>Kristallkugeln</span><b>${globes}</b></div><div class="card"><span>Medaillen</span><b>🥇${c.medals[0]} 🥈${c.medals[1]} 🥉${c.medals[2]}</b></div>
     <div class="card"><span>Beliebtheit</span><b>${Math.round(c.pop||10)}</b></div></div>
    <div class="g2" style="margin-top:0;margin-bottom:16px">${legacyCard(c)}${recordsCard(c)}</div>
    ${c.seasons.length?`<div class="card"><h2>Saisonbilanzen</h2><div class="scroll"><table class="tl"><tr><th>Saison</th><th class="r hm">Alter</th><th class="hm">Kader</th><th class="r">Gesamt</th><th class="r">Punkte</th><th class="r">Siege</th><th class="r">Podeste</th>${DISC.map(d=>`<th class="r hm">${d}</th>`).join('')}</tr>${c.seasons.map(s=>`<tr><td>${s.s}/${String(s.s+1).slice(2)}</td><td class="r hm">${s.age}</td><td class="hm">${s.kader}</td><td class="r">${s.rk}${s.rk!=='–'?'.':''}</td><td class="r">${s.pts}</td><td class="r">${s.wins}</td><td class="r">${s.pods}</td>${s.best.map(b=>`<td class="r mut hm">${b<99?b+'.':'–'}</td>`).join('')}</tr>`).join('')}</table></div></div>`:''}
-   <div class="g2"><div class="card"><h2>Meilensteine (${Object.keys(c.ach).length}/${ACH.length})</h2><div class="ach">${ACH.map(([k2,t,d])=>`<div class="${c.ach[k2]?'on':''}"><b>${c.ach[k2]?'🏅':'🔒'} ${t}</b>${d}</div>`).join('')}</div></div>
-   <div class="card"><h2>Tagebuch</h2><div class="news scroll" style="max-height:420px">${c.log.slice(0,60).map(l=>`<div>${esc(l)}</div>`).join('')}</div></div></div>
-   <div style="margin-top:16px">${pressCard(15)}</div>
-   ${rHist()}
    <p class="foot"><button class="btn ghost sm" data-act="retire">👋 Karriere beenden</button> <span class="mut small">Danach startest du eine neue Karriere – in derselben Weltcup-Welt.</span></p>`;
+  return subnav(ch)+b;
 }
 // ---------- Karriere erstellen ----------
 function worldChoice(){const prog=S.season>2026||S.hist.length||(S.legends||[]).length;if(!prog)return '';CF.world=CF.world||'keep';
@@ -2228,7 +2253,7 @@ function bind(){
   on('[data-rv]',e=>{RV=e.dataset.rv;render()});
   on('[data-train]',e=>doTrain(e.dataset.train));
   on('[data-int]',e=>{TI=e.dataset.int;render()});
-  on('[data-goto]',e=>{SEL[G]=+e.dataset.goto;TAB='races';RV='detail';render();window.scrollTo(0,0)});
+  on('[data-goto]',e=>{SEL[G]=+e.dataset.goto;TAB='races';SUBT.races='cal';RV='detail';render();window.scrollTo(0,0)});
   on('[data-ath]',e=>athModal(e.dataset.ath));
   on('[data-cf]',e=>{const[k,v]=e.dataset.cf.split(':');CF.name=$('#cfName').value;CF.nat=$('#cfNat').value;CF[k]=v;render()});
   on('[data-start]',e=>{const d=e.dataset.start;C().starts[d]=!C().starts[d];save();render()});
@@ -2237,7 +2262,8 @@ function bind(){
   on('[data-reha]',e=>{C().reha=e.dataset.reha;save();render()});
   on('[data-inter]',e=>{C().interactive=e.dataset.inter==='1';save();render()});
   on('[data-sec]',e=>{resolveSection(e.dataset.sec);save();render();window.scrollTo(0,0)});
-  on('[data-tst]',e=>{TST=e.dataset.tst;render()});
+  on('[data-sub]',e=>{SUBT[TAB]=e.dataset.sub;render();window.scrollTo(0,0)});
+  on('[data-go]',e=>{const[t,sb]=e.dataset.go.split(':');TAB=t;if(sb)SUBT[t]=sb;if(t==='races')RV='list';render();window.scrollTo(0,0)});
   on('[data-goal]',e=>{CF.name=$('#cfName').value;CF.nat=$('#cfNat').value;CF.goal=e.dataset.goal;render()});
   on('[data-leg]',e=>{CF.name=$('#cfName').value;CF.nat=$('#cfNat').value;CF.leg=!CF.leg;render()});
   on('[data-diff]',e=>{CF.name=$('#cfName').value;CF.nat=$('#cfNat').value;CF.diff=e.dataset.diff;render()});
