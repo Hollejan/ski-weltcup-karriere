@@ -654,7 +654,30 @@ const NAMES={
  GER:{M:'Leon Moritz Jonas Ben Quirin Vitus',W:'Leonie Paula Johanna Franzi Lina Vroni',L:'Lechner Kaiser Brandl Wagner Gschwendtner Rieder'},
  SWE:{M:'Oscar William Elias Axel Linus',W:'Ebba Maja Wilma Alva Ella',L:'Lindqvist Nyberg Holm Sjöberg Engström'},
  CAN:{M:'Liam Owen Ethan Noah',W:'Charlotte Olivia Maeve Ella',L:'Tremblay Gagnon MacLeod Fraser Bouchard'},
- SLO:{M:'Luka Jan Žiga Nejc',W:'Ana Nika Zala Ema',L:'Novak Horvat Kranjc Zupan Potočnik'}};
+ SLO:{M:'Luka Jan Žiga Nejc',W:'Ana Nika Zala Ema',L:'Novak Horvat Kranjc Zupan Potočnik'},
+ CRO:{M:'Ivan Marko Filip Luka',W:'Petra Lana Mia Iva',L:'Kovačić Babić Jurić Perić Matić'},
+ CZE:{M:'Jakub Ondřej Tomáš Adam',W:'Tereza Eliška Klára Barbora',L:'Novotný Dvořák Černý Procházka Krejčí'},
+ SVK:{M:'Matej Samuel Adam Martin',W:'Petra Nina Simona Lucia',L:'Kováč Horváth Baláž Tóth Varga'},
+ POL:{M:'Jakub Kacper Michał Piotr',W:'Zofia Maja Hanna Julia',L:'Nowak Kowalski Zając Wójcik Mazur'},
+ ESP:{M:'Pablo Álvaro Joaquim Marc',W:'Núria Laia María Clara',L:'García Puig Ferrer Rius Vidal'},
+ GBR:{M:'Jack Oliver Harry Charlie',W:'Amelia Isla Freya Poppy',L:'Taylor Murray Baxter Ryding Gould'},
+ FIN:{M:'Eemeli Aleksi Joonas Veeti',W:'Aino Venla Iida Ella',L:'Virtanen Korhonen Mäkinen Laine Heikkinen'},
+ BEL:{M:'Arthur Louis Victor Jules',W:'Lotte Emma Marie Elise',L:'Peeters Janssens Maes Claes'},
+ NZL:{M:'James Finn Lachlan Hamish',W:'Ruby Isla Georgia Piper',L:'Wilson Robinson Thompson Kerr'},
+ AND:{M:'Joan Marc Pol Àlex',W:'Laia Carla Júlia Cande',L:'Moles Riba Font Cerqueda'},
+ LIE:{M:'Elias Nico Marco',W:'Laura Lea Jessica',L:'Frommelt Büchel Wenzel Ospelt'}};
+// Breite des Feldes: Fahrer:innen aus der zweiten Reihe, damit die Starterfelder realistisch groß sind
+const DEPTH={M:{GS:68,SL:74,DH:56,SG:58},W:{GS:62,SL:66,DH:48,SG:52}};
+const DNATS='AUT AUT SUI SUI ITA ITA FRA FRA NOR USA GER GER SWE CAN SLO SLO CRO CZE CZE SVK POL ESP GBR FIN BEL NZL AND LIE'.split(' ');
+function depthAth(g,d){const nat=pick(DNATS);const P=NAMES[nat];let name,n=0;do{name=pick(P[g].split(' '))+' '+pick(P.L.split(' '));n++}while(ATH[g].some(a=>a.name===name)&&n<40);
+  const r={DH:0,SG:0,GS:0,SL:0};const v=()=>+(66+Math.pow(rnd(),1.4)*7).toFixed(1);r[d]=v();
+  const tw={GS:'SL',SL:'GS',DH:'SG',SG:'DH'}[d];if(rnd()<.6)r[tw]=+(r[d]-1-rnd()*5).toFixed(1);if(r[tw]&&r[tw]<60)r[tw]=0;
+  const by=S.season-(19+Math.floor(rnd()*11));const best=Math.max(...Object.values(r));
+  return{id:g+'d'+(S.nid++),name,nat,r,by,pot:+Math.min(95,best+1+rnd()*(S.season-by<24?9:3)).toFixed(1),depth:1}}
+function ensureDepth(){let add=0;for(const g of['M','W'])for(const d of DISC){let n=S.ath[g].filter(a=>a.r[d]>=66).length;
+  while(n<DEPTH[g][d]){const a=depthAth(g,d);S.ath[g].push(a);BYID[a.id]=a;n++;add++;
+    const tw={GS:'SL',SL:'GS',DH:'SG',SG:'DH'}[d];}}
+  if(add)rebuild();return add}
 const ACH=[['start','Weltcup-Debüt','Erster Start im Weltcup'],['run2','Im Finale','Erstmals im 2. Durchgang'],['points','Erste Punkte','Top 30'],['top15','Top 15','Erstmals unter den besten 15'],['top10','Top 10','Erstmals unter den besten 10'],['podium','Podest!','Erstmals auf dem Stockerl'],['win','Weltcupsieg','Erster Sieg'],['wins5','Serientäter','5 Weltcupsiege'],['final','Finalist','Teilnahme am Weltcupfinale'],['medal','Medaille','Medaille bei WM/Olympia'],['gold','Champion','Gold bei WM/Olympia'],['globe','Kleine Kugel','Disziplinenwertung gewonnen'],['overall','Große Kugel','Gesamtweltcup gewonnen'],['wins25','Legende','25 Weltcupsiege'],['classic','Klassiker','Sieg in Kitzbühel, Wengen, Adelboden, Schladming oder Bormio'],['night','Flutlicht','Top 10 in einem Nachtrennen'],['rival','Rivale bezwungen','Saisonduell gegen deinen Rivalen gewonnen'],['leader','Teamleader','Beste:r deiner Nation im Gesamtweltcup'],['comeback','Comeback','Podest nach schwerer Verletzung'],['record','Rekordjäger','Einen Allzeit-Rekord gebrochen']];
 const UPG_OLD={service:{n:'Servicemann & Material',d:'+Tempo in jedem Rennen',c:[40000,90000,180000]},trainer:{n:'Persönlicher Trainer',d:'+25 % Trainingseffekt je Stufe',c:[35000,80000,160000]},physio:{n:'Physio-Team',d:'weniger Ermüdung, kürzere Verletzungen',c:[30000,70000,140000]}};
 const FOCUS={GS:'Riesentorlauf',SL:'Slalom',DH:'Abfahrt',SG:'Super-G',tech:'Technik (RTL+SL)',speed:'Speed (DH+SG)',kond:'Kondition',mental:'Mentaltraining',reg:'Regeneration'};
@@ -750,7 +773,7 @@ let RISKOV=null;
 
 function startList(g,i,disc){
   const c=C();const me=c&&c.g===g?BYID[c.id]:null;
-  let pool=ATH[g].filter(a=>a.r[disc]>=70&&available(g,a)&&!isMe(a.id));
+  let pool=ATH[g].filter(a=>a.r[disc]>=66&&available(g,a)&&!isMe(a.id));
   if(S.season===2026)pool=pool.filter(a=>{const p=STARTP[a.name]&&STARTP[a.name][disc];return p==null||rnd()<p});
   const wcx=wcsl(g,disc);const myTop30=me&&Object.entries(wcx).sort((x,y)=>y[1]-x[1]).slice(0,30).some(x=>x[0]===me.id);
   if(me&&c.starts[disc]&&me.r[disc]>=60&&available(g,me)&&!c.skipNext&&(!isLow(c)||myTop30||ecDiscOk(c,disc)))pool.push(me);
@@ -760,7 +783,7 @@ function startList(g,i,disc){
   // Nationenquote: Top 30 der Disziplinwertung haben einen fixen Platz
   const cnt={};let notNom=null;
   pool=pool.filter(a=>{if(top30.has(a.id))return true;cnt[a.nat]=(cnt[a.nat]||0)+1;const ok=cnt[a.nat]<=quota(a.nat);if(!ok&&isMe(a.id))notNom={rank:cnt[a.nat],q:quota(a.nat)};return ok});
-  const lim=disc==='DH'||disc==='SG'?55:62;
+  const lim=disc==='DH'||disc==='SG'?56:disc==='SL'?72:68;
   if(pool.length>lim){const mi=pool.findIndex(a=>isMe(a.id));const cut=pool.slice(0,lim);if(mi>=lim)cut.push(pool[mi]);pool=cut}
   if(isFinal(g,i)){const top=new Set(st.slice(0,25).map(x=>x.id));const f=pool.filter(a=>top.has(a.id));pool=f.length>=12?f:pool.slice(0,25)}
   pool.notNom=notNom;return pool;
@@ -881,11 +904,11 @@ function projection(p){
   if(p.run===1){const t=p.t0+p.delta;const arr=ctx.r1.map(x=>x.t1);const rk=arr.filter(x=>x<t).length+1;return{rk,gap:arr.length?t-Math.min(...arr):0,t}}
   const t=ctx.mb2.t1+p.t0+p.delta;const arr=ctx.r2.map(x=>x.t);const rk=arr.filter(x=>x<t).length+1;return{rk,gap:arr.length?t-Math.min(...arr):0,t};
 }
-function resolveSection(ch,quiet,bonus=0){
+function resolveSection(ch,quiet,bonus=0,tq=null){
   const p=S.pend;if(!p||p.kind!=='run')return;const ctx=p.ctx;const L=p.L;const pr=secProb(ctx,p.k);if(bonus)pr.pA=clamp(pr.pA+bonus,0.05,0.95);
   let d,crash=false,txt;const n=(rnd()-.5)*0.002*L;
   if(ch==='safe'){d=0.003*L+n;crash=rnd()<0.005;txt=crash?'Verkantet – Sturz!':'Sicher durch'}
-  else if(ch==='att'){const ok=rnd()<pr.pA;d=(ok?-0.0045:0.006)*L+n;crash=!ok&&rnd()<CRASHF[ctx.disc];txt=ok?'Perfekt erwischt!':crash?(ctx.disc==='SL'?'Eingefädelt – aus!':'Sturz!'):'Fehler – Zeit verloren'}
+  else if(ch==='att'){const ok=tq==='perfect'||rnd()<pr.pA;d=(ok?-0.0045:0.006)*L+n;crash=!ok&&rnd()<CRASHF[ctx.disc]*(tq==='good'?0.5:1);txt=ok?'Perfekt erwischt!':crash?(ctx.disc==='SL'?'Eingefädelt – aus!':'Sturz!'):'Fehler – Zeit verloren'}
   else{const ok=rnd()<pr.pK;d=(ok?-0.001:0.006)*L+n;crash=!ok&&rnd()<0.06;txt=ok?'Sauber gefahren':crash?(ctx.disc==='SL'?'Eingefädelt – aus!':'Sturz!'):'Kleiner Fehler'}
   p.delta+=d;p.hist.push({n:pr.name,ch,txt,d:+d.toFixed(2),crash});
   if(!crash){const fr=(p.k+1)/4;let my,oth;if(p.run===1){my=p.t0*fr+p.delta;oth=ctx.r1.map(x=>x.t1*fr)}else{my=ctx.mb2.t1+p.t0*fr+p.delta;oth=ctx.r2.map(x=>x.t1+x.t2*fr)}
@@ -1026,7 +1049,7 @@ function doneCount(g){return Object.keys(S[g].res).length}
 
 // =============== KARRIERE ===============
 function newCareer(){
-  if(CF.world==='reset'){const L=S.legends||[];const ch=S.chaos;S=fresh();S.legends=L;S.chaos=ch;rebuild();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}
+  if(CF.world==='reset'){const L=S.legends||[];const ch=S.chaos;S=fresh();S.legends=L;S.chaos=ch;rebuild();ensureDepth();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}
   const g=CF.g;const nm=(CF.name||'').trim()||'Neues Talent';
   const yo=CF.start!=='pro';const sa=yo?16:19;const dl=yo?16:0;
   const r={DH:62-dl,SG:62-dl,GS:62-dl,SL:62-dl};
@@ -1685,12 +1708,12 @@ function timingSpec(){const p=S.pend;const ctx=p.ctx;const c=C();const pr=secPro
 function startTiming(){const sp=timingSpec();TIMING={...sp,t0:performance.now()};render();const tick=()=>{if(!TIMING)return;const m=document.querySelector('.tm-mark');if(m)m.style.left=(timingPos()*100)+'%';requestAnimationFrame(tick)};requestAnimationFrame(tick)}
 function timingPos(){const t=(performance.now()-TIMING.t0)/1000/TIMING.per;const f=t%2;return f<1?f:2-f}
 function stopTiming(){if(!TIMING)return;const pos=timingPos();const d=Math.abs(pos-TIMING.center);const w=TIMING.w;
-  let bonus,lbl;if(d<=w*0.18){bonus=0.15;lbl='🎯 Perfekt getimt! +15 %'}else if(d<=w/2){bonus=0.07;lbl='👍 Gut getimt! +7 %'}else if(d<=w){bonus=0;lbl='Knapp – kein Bonus'}else{bonus=-0.12;lbl='❌ Verpasst! −12 %'}
-  TIMING=null;toast(lbl);resolveSection('att',false,bonus);save();render();window.scrollTo(0,0)}
+  let bonus,lbl,tq;if(d<=w*0.18){bonus=0;tq='perfect';lbl='🎯 Perfekt getimt – Ideallinie!'}else if(d<=w/2){bonus=0.15;tq='good';lbl='👍 Gut getimt! +15 %, halbe Sturzgefahr'}else if(d<=w){bonus=0;tq='ok';lbl='Knapp – kein Bonus'}else{bonus=-0.12;tq='miss';lbl='❌ Verpasst! −12 %'}
+  TIMING=null;toast(lbl);resolveSection('att',false,bonus,tq);save();render();window.scrollTo(0,0)}
 function timingOverlay(){const T=TIMING;const l=(T.center-T.w/2)*100,wd=T.w*100,pl=(T.center-T.w*0.09)*100,pw=T.w*18;
   return `<div class="timing" data-act="timing"><div class="tm-box"><b>🔥 Angriff – tippe im richtigen Moment!</b>
    <div class="tm-bar"><div class="tm-zone" style="left:${l}%;width:${wd}%"></div><div class="tm-perfect" style="left:${pl}%;width:${pw}%"></div><div class="tm-mark"></div></div>
-   <button class="btn racebtn tm-go">JETZT!</button><span class="mut small">Grün = Bonus, Gold = perfekt. Daneben senkt deine Chance.</span></div></div>`}
+   <button class="btn racebtn tm-go">JETZT!</button><span class="mut small">Gold = perfekt (gelingt sicher) · Grün = Bonus · daneben senkt deine Chance.</span></div></div>`}
 
 // =============== SAISONWECHSEL ===============
 function newTalent(g){
@@ -1766,6 +1789,7 @@ function nextSeason(){
     const nT=Math.max(4,(g==='M'?84:74)-S.ath[g].length+Math.floor(rnd()*3));for(let k=0;k<nT;k++)S.ath[g].push(newTalent(g));
     S[g]={res:{},form:{},inj:{},news:[],wm:null,seed:{}};
   }
+  rebuild();ensureDepth();
   if(c){c.fat=0;const left=(prevInj||0)-15;if(left>0)S[c.g].inj[c.id]=left;else if(prevInj){c.reha=c.reha;onReturn();c.rust=+(c.rust/2).toFixed(2)}}
   rebuild();if(c){const kr=c.rival&&BYID[c.rival]&&BYID[c.rival].wunder;if(!kr)pickRival();makeOffers();c.pop=+((c.pop||10)*0.9).toFixed(1);c.summer={};c.event=null;c.load=Math.round((c.load||0)*0.2);c.body=Math.max(0,(c.body||0)-4);c.wear=Math.min(c.wear||0,30);makeTasks()}
   const nw=['M','W'].map(g=>ATH[g].filter(a=>a.rookie).map(a=>a.name).join(', '));
@@ -2422,7 +2446,7 @@ function bind(){
     if(a==='cereok'){S.cere=null;TAB='home';save();render();window.scrollTo(0,0)}if(a==='cereres'){const e=S.cere;S.cere=null;if(!e.wm){SEL[e.g]=e.i;TAB='races';SUBT.races='cal';RV='detail'}else{TAB='races';SUBT.races='wm'}save();render();window.scrollTo(0,0)}if(a==='secauto'){let n=0;while(S.pend&&n++<10)resolveSection('ctrl');save();render()}if(a==='autoreha')autoRehab();
     if(a==='newcareer'){CF.name=$('#cfName').value;CF.nat=$('#cfNat').value;newCareer();TAB='home';render()}
     if(a==='retire'){if(e.dataset.arm)retireCareer();else{e.dataset.arm=1;e.textContent='⚠ Wirklich beenden? Nochmal klicken'}}
-    if(a==='wipe'){if(e.dataset.arm){S=fresh();rebuild();initReal();render()}else{e.dataset.arm=1;e.textContent='⚠ Alles löschen? Nochmal klicken'}}});
+    if(a==='wipe'){if(e.dataset.arm){S=fresh();rebuild();ensureDepth();initReal();render()}else{e.dataset.arm=1;e.textContent='⚠ Alles löschen? Nochmal klicken'}}});
   const aq=$('#aq');if(aq){aq.oninput=()=>{AFILT=aq.value;const p=aq.selectionStart;render();const n=$('#aq');n.focus();n.setSelectionRange(p,p)};$('#an').onchange=e=>{NTAB=e.target.value;render()}}
   const cn=$('#cfName');if(cn)cn.oninput=()=>CF.name=cn.value;
 }
@@ -2432,7 +2456,7 @@ $('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.remove('o
 function initReal(){const r=REAL[S.season];if(r)for(const g of['M','W'])for(const i in r[g])simRace(g,+i);save()}
 S=load();
 if(S&&!S.ath)S=null;
-if(!S){S=fresh();rebuild();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}else rebuild();
+if(!S){S=fresh();rebuild();ensureDepth();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}else{rebuild();if(ensureDepth())save()}
 if(!S.prevPts)S.prevPts={M:estPrev('M'),W:estPrev('W')};
 migrateCareer();if(S.pend&&S.pend.kind!=='run')S.pend=null;
 render();
