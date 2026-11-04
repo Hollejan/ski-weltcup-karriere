@@ -114,6 +114,15 @@ nav button.on{background:var(--panel2);border-color:var(--line);color:var(--txt)
 .hud-svg{position:relative}.hud-svg.egov{min-height:190px}.hud-svg canvas#ego{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .egotog{position:absolute;right:8px;bottom:8px;z-index:2;background:rgba(7,26,49,.8);color:#fff;border:1px solid rgba(255,255,255,.25);font:600 12px var(--cond);padding:4px 8px;border-radius:3px;cursor:pointer}
 .egoend{position:fixed;inset:0;z-index:30;background:#000;display:flex;flex-direction:column;align-items:center}.egoend canvas{flex:1 1 auto;width:100%;display:block}.egoend span{padding:10px;color:#9fb3cc}
+.review>.card,.review>.g2{margin-bottom:12px}.rv-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.rv-rank{background:rgba(7,26,49,.6);padding:8px 14px;text-align:center;min-width:92px;border-left:4px solid var(--gold)}.rv-rank span{display:block;font-size:11px;color:var(--mut)}.rv-rank b{display:block;font:800 34px var(--cond);line-height:1}.rv-rank em{font-style:normal;font-size:12px;color:var(--mut)}
+.rv-trophy{margin:10px 0;padding:10px 12px;background:linear-gradient(90deg,rgba(244,196,48,.3),rgba(244,196,48,.05));border-left:4px solid var(--gold);font:800 18px var(--cond);color:var(--gold)}
+.globes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.globe-t{background:rgba(255,255,255,.04);border-left:4px solid var(--line);padding:10px;display:grid;gap:2px;align-content:start}
+.globe-t.big{grid-column:1/-1;border-left-color:var(--gold);background:linear-gradient(90deg,rgba(244,196,48,.14),rgba(255,255,255,.03))}.globe-t.big .gl-w b{font-size:22px}
+.globe-t.mine{border-left-color:var(--gold);background:rgba(244,196,48,.18)}.globe-t.mine .gl-w b{color:var(--gold)}
+.gl-ic{font-size:22px;line-height:1}.globe-t.big .gl-ic{font-size:30px}.gl-l{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ice)}.gl-w b{font:800 17px var(--cond)}.gl-p{font-size:11.5px;color:var(--mut)}.gl-me{font-size:12px;margin-top:4px}
+.gl-foot{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:13px;align-items:center}
+@media(max-width:600px){.globes{grid-template-columns:1fr 1fr}}
 .drawgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
 .lot{aspect-ratio:3/4;border:2px solid var(--line);background:linear-gradient(160deg,#1f4b7a,#0e223a);color:var(--txt);font:inherit;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s}
 .lot b{font-size:26px;font-family:var(--cond)}.lot span{font-size:10px;color:var(--mut);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
@@ -959,6 +968,7 @@ function setCere(ctx,res,sp,hs,hp){const c=C();const me=c.id;const m=res.fin.fin
   S.cere={g:ctx.g,i:ctx.i,disc:ctx.disc,venue:ctx.venue,vnat:ctx.vnat,wm:ctx.wm?eventOf(S.season)[0]:null,two:ctx.two,
     rk:m?m.rk:null,st:o?o.st:null,t:m?m.t:null,gap:m&&lead?+(m.t-lead.t).toFixed(2):null,pts:m?m.pts||0:0,prize:m&&!ctx.wm?PRIZE[m.rk-1]||0:0,
     top:res.fin.filter(f=>f.rk<=3).slice(0,5).map(f=>({id:f.id,t:f.t,rk:f.rk})),sp,hs,hp,ex:expRank(ctx.g,a,ctx.disc),
+    spon:c.lastSpon&&c.lastSpon.key===(ctx.wm?'wm'+ctx.disc:ctx.g+ctx.i)?c.lastSpon.list:[],
     rv:c.rival&&res.fin.concat(res.out).some(f=>f.id===c.rival)?(()=>{const r=res.fin.find(f=>f.id===c.rival);return r?r.rk:0})():null}}
 function coachLine(e){const d=e.rk?e.ex-e.rk:null;
   if(e.rk===1)return pick(['„Unglaublich! Das ist dein Tag!“','„Ich hab Gänsehaut. Genau dafür arbeiten wir.“','„Was für eine Fahrt – einfach perfekt!“']);
@@ -985,6 +995,7 @@ function cereCard(){const e=S.cere;const c=C();const x=cal(e.g)[e.i];const a=BYI
   const splits=e.sp&&e.sp.length?`<h3>Zwischenzeiten</h3><div class="splits">${e.sp.map(s=>`<div class="${s.gap<=0?'green':s.rk<=10?'amber':'red'}"><span>⏱ ${s.k}</span><b>${s.gap<=0?'−'+Math.abs(s.gap).toFixed(2):'+'+s.gap.toFixed(2)}</b> <em class="small">${s.rk}.</em></div>`).join('')}${e.rk?`<div class="${e.rk===1?'green':e.rk<=10?'amber':'red'}"><span>🏁 Ziel</span><b>${e.rk===1?'Bestzeit':'+'+e.gap.toFixed(2)}</b> <em class="small">${e.rk}.</em></div>`:''}</div>`:'';
   const win=[];if(e.pts)win.push(`+${e.pts} Weltcuppunkte`);if(e.prize)win.push(`+${fmtCHF(e.prize)} Preisgeld`);
   if(pod&&ev)win.push(`+${fmtCHF([50000,30000,20000][e.rk-1])} Medaillenprämie`);
+  (e.spon||[]).forEach(x=>win.push(`💶 ${esc(x.name)}: +${fmtCHF(x.v)} <span class="mut">(netto ${fmtCHF(x.net)})</span>`));
   return `<div class="card hero-card cere-card ${pod?'pod-on':''} ${e.rk===1?'win':''}">${e.rk===1?'<div class="confetti">'+'<i></i>'.repeat(18)+'</div>':''}
    <div class="eyebrow">${ev?ev+' '+(S.season+1)+' · ':''}${DN[e.disc]} ${flag(x[2])} ${esc(e.venue)}${pod?' · Siegerehrung':' · Zielraum'}</div>
    <h2 class="big">${head}</h2><p class="lead">${sub}</p>
@@ -1107,9 +1118,10 @@ function careerAfterRace(g,i,res,disc,ctx){
       if(x.rk===1){unlock('win');c.wins++;if(c.wins>=5)unlock('wins5');if(c.wins>=25)unlock('wins25');if(CLASSIC.includes(venue))unlock('classic')}
       earn('Preisgeld',PRIZE[x.rk-1]||0,true);
       const sk=c.sp&&c.sp.ski,hd=c.sp&&c.sp.head;
-      if(x.rk<=3&&sk&&sk.pod){earn('Sponsoren',sk.pod,true);clog(`💶 ${sk.name}-Podestprämie ${fmtCHF(sk.pod)}`)}
-      if(hd&&hd.perk==='points'&&x.pts)earn('Sponsoren',x.pts*hd.perPt,true);
-      if(hd&&hd.perk==='podium'&&x.rk<=3){earn('Sponsoren',hd.pod,true);clog(`💶 ${hd.name}-Podestprämie ${fmtCHF(hd.pod)}`)}
+      c.lastSpon={key:g+i,list:[]};
+      if(x.rk<=3&&sk&&sk.pod)sponPay(c,sk.name,'Podestprämie',sk.pod);
+      if(hd&&hd.perk==='points'&&x.pts)sponPay(c,hd.name,`${x.pts} Punkte × ${fmtCHF(hd.perPt)}`,x.pts*hd.perPt);
+      if(hd&&hd.perk==='podium'&&x.rk<=3)sponPay(c,hd.name,'Podestprämie',hd.pod);
       if(hd&&hd.perk==='xp')xp.push([`Sponsor ${hd.name}`,3]);
       if(x.rk<=3&&!c.offerFlag){c.offerFlag=1;makeOffers();toast('📨 Neue Sponsorangebote!')}
       if(isFinal(g,i))unlock('final');}
@@ -1493,6 +1505,10 @@ function shopCard(c){const a=BYID[c.id];const ag=age(a);c.own=c.own||{};
    ${Object.entries(SHOPCAT).map(([ck,ct])=>`<div class="card" style="margin-bottom:12px"><h2>${ct}</h2>${SHOP.filter(x=>x[1]===ck).map(([k,,n,pr,upk,d,ma])=>{const has=c.own[k];
      return `<div class="cand"><div><b>${n}</b>${has?' <span class="pill">✓ gehört dir</span>':''}<div class="ok small">${d}</div><div class="small">${fmtCHF(pr)}${upk?` · Unterhalt ${fmtCHF(upk)}/Saison`:''}</div></div>${has?(k==='acad'?'':`<button class="btn sm ghost" data-sell="${k}">Verkaufen</button>`):`<button class="btn sm" style="white-space:nowrap" data-buy="${k}" ${c.money<pr||ag<ma?'disabled':''}>${ag<ma?`ab ${ma} J.`:'Kaufen'}</button>`}</div>`}).join('')}</div>`).join('')}`}
 
+// ---------- Sponsorprämien ----------
+const NETQ=0.65; // nach 25 % Steuern und 10 % Manager
+function sponPay(c,name,what,v){if(!v)return;earn('Sponsoren',v,true);const net=Math.round(v*NETQ);(c.lastSpon=c.lastSpon||{list:[]}).list.push({name,what,v,net});
+  clog(`💶 ${name}: ${what} ${fmtCHF(v)} (netto ${fmtCHF(net)})`)}
 // ---------- Sponsorziele ----------
 function makeTarget(o,t){
   if(o.type==='head'&&rnd()<.4){o.goal={k:'pop',v:[0,25,45,65][t],t:`Beliebtheit mindestens ${[0,25,45,65][t]}`};return}
@@ -1678,7 +1694,11 @@ function wmRecord(g,disc,f,started){
   const c=C();if(c&&c.g===g){const xp=[];
     if(started){const k0=f.findIndex(x=>isMe(x.id));const k=k0<0?-1:RK[k0]-1;clog(`${ev[0]} ${DN[disc]}: ${k<0?'Ausfall':(k+1)+'. Platz'}`);(c.sres=c.sres||[]).push({v:ev[0]+' '+ev[1],d:disc,l:'WM',ev:ev[0],rk:k>=0?k+1:null,st:k<0?'DNF':null});
       if(k>=0&&k<3){c.medals[k]++;unlock('medal');popAdd(6-k);if(k===0){unlock('gold');if(ev[0]==='Olympia')c.olyGold=1;press(`${BYID[c.id].name} holt ${ev[0]}-GOLD im ${DN[disc]}!`)}else press(`${['','Silber','Bronze'][k]} für ${BYID[c.id].name} im ${DN[disc]}`);
-        (c.tasks||[]).forEach(t=>{if(t.k==='medal'&&!t.done)taskReward(c,t)});toast(`${['🥇','🥈','🥉'][k]} ${ev[0]}-Medaille im ${DN[disc]}!`);earn('Prämien',[50000,30000,20000][k]);xp.push([`${ev[0]}-Medaille`,25])}
+        (c.tasks||[]).forEach(t=>{if(t.k==='medal'&&!t.done)taskReward(c,t)});toast(`${['🥇','🥈','🥉'][k]} ${ev[0]}-Medaille im ${DN[disc]}!`);earn('Prämien',[50000,30000,20000][k]);xp.push([`${ev[0]}-Medaille`,25]);
+        {c.lastSpon={key:'wm'+disc,list:[]};const sk=c.sp&&c.sp.ski,hd=c.sp&&c.sp.head;const mf=[2,1.5,1.2][k];
+         if(sk&&sk.pod)sponPay(c,sk.name,`${ev[0]}-Medaillenprämie`,Math.round(sk.pod*mf/100)*100);
+         if(hd&&hd.perk==='podium')sponPay(c,hd.name,`${ev[0]}-Medaillenprämie`,Math.round(hd.pod*mf/100)*100);
+         if(hd&&hd.perk==='points')sponPay(c,hd.name,`${ev[0]}-Medaillenprämie`,[100,80,60][k]*hd.perPt)}}
       else if(k>=0)xp.push([`${ev[0]}: Platz ${k+1}`,8]);else xp.push([`${ev[0]}-Erfahrung`,4]);
       loadAdd(6);c.fat=clamp(c.fat+15*(1.3-c.kond/100),0,100);c.wear=clamp((c.wear||0)+3,0,100);}
     else if(c.starts[disc]&&BYID[c.id].r[disc]>=60&&available(g,BYID[c.id]))clog(`${ev[0]} ${DN[disc]}: nicht nominiert (max. 4 pro Nation)`);
@@ -2313,7 +2333,7 @@ function myResults(n){const c=C();const g=c.g;const rows=[];
   return `<table>${rows.slice(-n).reverse().map(({x,i,m,o})=>`<tr class="clk" data-goto="${i}"><td class="mut">${dfmt(x)}</td><td>${tag(x[3])} ${esc(x[1])}</td><td class="r"><b>${m?m.rk+'.':o.st==='DNQ'?'n.q.':'DNF'}</b></td><td class="r mut">${m&&m.pts?'+'+m.pts:''}</td></tr>`).join('')}</table>`}
 // ---------- Saisonrückblick ----------
 const LVLN={WC:'Weltcup',EC:'Europacup',FIS:'FIS-Rennen',JWM:'Junioren-WM',WM:'Großereignis'};
-function resScore(e){if(!e.rk)return -1;const base={WM:112,WC:100,EC:55,JWM:50,FIS:25}[e.l]||0;return base-e.rk*(e.l==='FIS'?0.6:1)+(e.l==='WM'&&e.rk<=3?30:0)+(e.l==='JWM'&&e.rk<=3?10:0)}
+function resScore(e){if(!e.rk)return -1;const base={WM:100,WC:100,EC:55,JWM:50,FIS:25}[e.l]||0;return base-e.rk*(e.l==='FIS'?0.6:1)+(e.l==='WM'&&e.rk<=3?30:0)+(e.l==='JWM'&&e.rk<=3?10:0)}
 function resTxt(e){const where=e.l==='WM'?`${e.ev} (${esc(e.v.replace(e.ev+' ',''))})`:e.l==='JWM'?'Junioren-WM':`${esc(e.v)} (${LVLN[e.l]})`;
   const pl=e.rk?(e.l==='WM'||e.l==='JWM')&&e.rk<=3?['🥇 Gold','🥈 Silber','🥉 Bronze'][e.rk-1]:e.rk===1?'🏆 Sieg':`${e.rk}. Platz`:e.st==='DNQ'?'nicht qualifiziert':'Ausfall';
   return `${pl} · ${DN[e.d]} – ${where}`}
@@ -2332,32 +2352,52 @@ function revData(c){const R=(c.sres||[]).filter(e=>e.l!=='INJ');const inj=(c.sre
   let stars=sc>=100?5:sc>=95?4:sc>=88?3:sc>=70?2:sc>=40?2:1;if(goal.ok)stars++;if(n.inj&&bigInj&&bigInj.sev>=3)stars--;stars=clamp(stars,1,5);
   return{R,best,bitter,n,stars,goal}}
 function revSum(c){const d=revData(c);return{stars:d.stars,best:d.best?resTxt(d.best):null,bitter:d.bitter?d.bitter.i+' '+d.bitter.t:null}}
+function globeCard(c){const g=c.g;const me=c.id;const ev=eventOf(S.season);
+  const tile=(lbl,icon,st,big)=>{const w=st[0];const k=st.findIndex(o=>o.id===me);const mine=w&&w.id===me;const a=w&&BYID[w.id];
+    return `<div class="globe-t ${big?'big':''} ${mine?'mine':''}"><div class="gl-ic">${icon}</div><div class="gl-l">${lbl}</div>
+     ${w?`<div class="gl-w">${flag(a.nat)} <b>${esc(mine?'DU!':a.name)}</b></div><div class="gl-p">${w.pts} Pkt${st[1]?` · vor ${esc(BYID[st[1].id].name.split(' ').pop())} (−${w.pts-st[1].pts})`:''}</div>`:'<div class="gl-w mut">nicht vergeben</div>'}
+     <div class="gl-me ${k<0?'mut':k<3?'ok':''}">Du: ${k<0?'keine Punkte':(k+1)+'. · '+st[k].pts+' Pkt'}</div></div>`};
+  const nm2={};['M','W'].forEach(gg=>{const n=nations(gg);for(const x in n)nm2[x]=(nm2[x]||0)+n[x]});const nc=Object.entries(nm2).sort((a,b)=>b[1]-a[1]);
+  const wmL=ev&&(S[g].wm||S[g].wmp)?DISC.filter(d=>(S[g].wm||S[g].wmp).races[d]&&(S[g].wm||S[g].wmp).races[d][0]).map(d=>{const x=(S[g].wm||S[g].wmp).races[d][0];return `<span class="pill">${tag(d)} 🥇 ${esc(BYID[x.id]?BYID[x.id].name.split(' ').pop():'')}${isMe(x.id)?' (DU)':''}</span>`}).join(''):'';
+  return `<div class="card"><h2>🔮 Kristallkugeln ${sLbl()} · ${g==='M'?'Herren':'Damen'}</h2>
+   <div class="globes">${tile('Gesamtweltcup','🏆',standings(g),1)}${DISC.map(d=>tile(DN[d],'🔮',standings(g,d))).join('')}</div>
+   <div class="gl-foot">${nc[0]?`<span>🌍 Nationencup: <b>${flag(nc[0][0])} ${NATNAME[nc[0][0]]||nc[0][0]}</b> (${nc[0][1]} Pkt)</span>`:''}${wmL?`<span>🏅 ${ev[0]}: ${wmL}</span>`:''}</div></div>`}
 function seasonReview(c){const g=c.g;const a=BYID[c.id];const d=revData(c);const st=standings(g);const k=st.findIndex(o=>o.id===c.id);
   const sum=o=>Object.values(o||{}).reduce((x,y)=>x+y,0);const f=c.fin||{inc:{},exp:{}};const bal=sum(f.inc)-sum(f.exp);
   const verdict=['','Eine Saison zum Vergessen.','Durchwachsen – da geht mehr.','Ordentlich! Du bist auf dem richtigen Weg.','Starke Saison – man kennt jetzt deinen Namen.','Eine Saison für die Geschichtsbücher!'][d.stars];
+  const myGlobes=DISC.filter(x=>(standings(g,x)[0]||{}).id===c.id).map(x=>DN[x]);const big=st[0]&&st[0].id===c.id;
   const tiles=[['Starts',d.n.starts],['Siege',d.n.wins],['Podeste',d.n.pods],['Top 10',d.n.top10],['Ausfälle',d.n.dnf]];
-  const wcLine=k>=0?`<b>${k+1}.</b> im Gesamtweltcup mit ${st[k].pts} Punkten`:c.kader==='J'?`<b>${fisTotal(c)}</b> FIS-Punkte`:isLow(c)?`<b>${ecTotal(c)}</b> Europacup-Punkte`:'keine Weltcuppunkte';
+  const wcLine=k>=0?`<b>${k+1}.</b> im Gesamtweltcup · ${st[k].pts} Punkte`:c.kader==='J'?`<b>${fisTotal(c)}</b> FIS-Punkte`:isLow(c)?`<b>${ecTotal(c)}</b> Europacup-Punkte`:'keine Weltcuppunkte';
   const dev=DISC.filter(x=>c.prev&&c.prev[x]!=null&&a.r[x]>=minR(c)).map(x=>{const v=a.r[x]-c.prev[x];return `<div class="rat"><span class="tag ${x}">${x}</span><span>${c.prev[x].toFixed(1)} → <b>${a.r[x].toFixed(1)}</b></span><span class="r ${v>0.05?'ok':v<-0.05?'bad':'mut'}">${v>0?'+':''}${v.toFixed(1)}</span></div>`}).join('');
   const heads=(c.press||[]).filter(x=>x.s===S.season).slice(0,4);
   const rv=c.rival&&BYID[c.rival]?BYID[c.rival]:null;const h2=c.h2h||{w:0,l:0};
-  return `<div class="card hero-card review"><div class="eyebrow">📼 Saisonrückblick ${sLbl()} · ${esc(a.name)} · ${age(a)} Jahre · ${kLbl(c)}</div>
-   <h2 class="big">${'★'.repeat(d.stars)}<span class="mut">${'☆'.repeat(5-d.stars)}</span></h2><p class="lead">${verdict}</p><p>${wcLine} · Saisonziel ${d.goal.ok?'<b class="ok">✅ erreicht</b>':'<b class="bad">❌ verpasst</b>'} <span class="mut small">(${esc(d.goal.t)})</span></p>
-   <div class="revtiles">${tiles.map(([t,v])=>`<div><span>${t}</span><b>${v}</b></div>`).join('')}</div>
-   <div class="g2" style="margin-top:12px">
-    <div class="revbox good"><span>🌟 Dein bestes Rennen</span><b>${d.best?resTxt(d.best):'Noch kein Ergebnis im Ziel'}</b></div>
-    <div class="revbox bad"><span>💔 Der bitterste Moment</span><b>${d.bitter?d.bitter.i+' '+d.bitter.t:'Keiner – alles im Rahmen geblieben.'}</b></div></div>
-   <div class="g2" style="margin-top:12px">
-    <div><h3>📈 Entwicklung</h3>${dev||'<p class="mut small">–</p>'}${bar('Kondition',c.kond)}${bar('Mental',c.mental)}</div>
-    <div><h3>📊 Bilanz</h3><table class="small">
+  const btn=`<button class="btn gold" data-act="season">🗓 Saison ${S.season+1}/${String(S.season+2).slice(2)} starten</button>`;
+  return `<div class="review">
+   <div class="card hero-card"><div class="eyebrow">📼 Saisonrückblick ${sLbl()} · ${esc(a.name)} · ${age(a)} J. · ${kLbl(c)}</div>
+    <div class="rv-head"><div><h2 class="big">${'★'.repeat(d.stars)}<span class="mut">${'☆'.repeat(5-d.stars)}</span></h2><p class="lead" style="margin:4px 0">${verdict}</p></div>
+     <div class="rv-rank"><span>${k>=0?'Gesamtweltcup':c.kader==='J'?'FIS':'Europacup'}</span><b>${k>=0?(k+1)+'.':c.kader==='J'?fisTotal(c):ecTotal(c)}</b><em>${k>=0?st[k].pts+' Pkt':'Punkte'}</em></div></div>
+    ${big||myGlobes.length?`<div class="rv-trophy">${big?'🏆 Du gewinnst den GESAMTWELTCUP!':''}${big&&myGlobes.length?' · ':''}${myGlobes.length?'🔮 Kristallkugel'+(myGlobes.length>1?'n':'')+': '+myGlobes.join(', '):''}</div>`:''}
+    <p class="small">🎯 Saisonziel ${d.goal.ok?'<b class="ok">✅ erreicht</b>':'<b class="bad">❌ verpasst</b>'} <span class="mut">– ${esc(d.goal.t)}</span></p>
+    <p class="row-btn">${btn}</p></div>
+   ${globeCard(c)}
+   <div class="card"><h2>📊 Deine Saison</h2>
+    <div class="revtiles">${tiles.map(([t,v])=>`<div><span>${t}</span><b>${v}</b></div>`).join('')}</div>
+    <div class="g2" style="margin-top:12px">
+     <div class="revbox good"><span>🌟 Dein bestes Rennen</span><b>${d.best?resTxt(d.best):'Noch kein Ergebnis im Ziel'}</b></div>
+     <div class="revbox bad"><span>💔 Der bitterste Moment</span><b>${d.bitter?d.bitter.i+' '+d.bitter.t:'Keiner – alles im Rahmen geblieben.'}</b></div></div>
+    ${d.R.length?`<details class="revlist"><summary>Alle ${d.R.length} Rennen der Saison</summary><table class="small">${d.R.map(e=>`<tr><td>${tag(e.d)}</td><td>${e.l==='WM'?esc(e.v):e.l==='JWM'?'Junioren-WM':esc(e.v)} <span class="mut">${LVLN[e.l]}</span></td><td class="r">${e.rk?e.rk+'.':e.st==='DNQ'?'n.q.':'DNF'}</td></tr>`).join('')}</table></details>`:''}</div>
+   <div class="g2" style="margin-top:0">
+    <div class="card"><h2>📈 Entwicklung</h2>${dev||'<p class="mut small">–</p>'}${bar('Kondition',c.kond)}${bar('Mental',c.mental)}</div>
+    <div class="card"><h2>💼 Bilanz</h2><table class="small">
       ${rv&&h2.w+h2.l>0?`<tr><td>⚔️ Duell mit ${esc(rv.name)}</td><td class="r"><b class="${h2.w>h2.l?'ok':h2.w<h2.l?'bad':''}">${h2.w}:${h2.l}</b></td></tr>`:''}
-      <tr><td>💰 Saisonsaldo</td><td class="r"><b class="${bal<0?'bad':'ok'}">${bal<0?'':'+'}${fmtCHF(bal)}</b></td></tr>
+      <tr><td>💰 Einnahmen</td><td class="r ok">+${fmtCHF(sum(f.inc))}</td></tr>
+      <tr><td>💸 Ausgaben</td><td class="r bad">−${fmtCHF(sum(f.exp))}</td></tr>
+      <tr><td><b>Saisonsaldo</b></td><td class="r"><b class="${bal<0?'bad':'ok'}">${bal<0?'':'+'}${fmtCHF(bal)}</b></td></tr>
+      ${(f.inc||{}).Sponsoren?`<tr><td>💶 davon Sponsoren (brutto)</td><td class="r">${fmtCHF(f.inc.Sponsoren)}</td></tr>`:''}
       <tr><td>📣 Beliebtheit</td><td class="r">${Math.round(c.pop||10)} – ${popLabel(c.pop||10)}</td></tr>
-      ${d.n.inj?`<tr><td>🚑 Verletzungen</td><td class="r">${d.n.inj}</td></tr>`:''}
-      <tr><td>🏆 Gesamtweltcup</td><td class="r">${st[0]?nm(st[0].id):'–'}</td></tr></table></div></div>
-   ${heads.length?`<h3>📰 Die Schlagzeilen deiner Saison</h3><div class="heads">${heads.map(x=>`<div><span>${esc(x.p)}</span>„${esc(x.t)}“</div>`).join('')}</div>`:''}
-   ${d.R.length?`<details class="revlist"><summary>Alle ${d.R.length} Rennen der Saison</summary><table class="small">${d.R.map(e=>`<tr><td>${tag(e.d)}</td><td>${e.l==='WM'?esc(e.v):e.l==='JWM'?'Junioren-WM':esc(e.v)} <span class="mut">${LVLN[e.l]}</span></td><td class="r">${e.rk?e.rk+'.':e.st==='DNQ'?'n.q.':'DNF'}</td></tr>`).join('')}</table></details>`:''}
-   <p class="mut small" style="margin-top:12px">Beim Saisonstart altern alle, Stars treten zurück, neue Talente kommen – und dein Kader wird neu eingestuft.</p>
-   <p class="row-btn"><button class="btn gold" data-act="season">🗓 Saison ${S.season+1}/${String(S.season+2).slice(2)} starten</button></p></div>`}
+      ${d.n.inj?`<tr><td>🚑 Verletzungen</td><td class="r">${d.n.inj}</td></tr>`:''}</table></div></div>
+   ${heads.length?`<div class="card"><h2>📰 Die Schlagzeilen deiner Saison</h2><div class="heads">${heads.map(x=>`<div><span>${esc(x.p)}</span>„${esc(x.t)}“</div>`).join('')}</div></div>`:''}
+   <div class="card"><p class="mut small" style="margin-top:0">Beim Saisonstart altern alle, Stars treten zurück, neue Talente kommen – und dein Kader wird neu eingestuft.</p><p class="row-btn">${btn}</p></div></div>`}
 function seasonSummary(){const c=C();const g=c.g;const st=standings(g);const k=st.findIndex(o=>o.id===c.id);
   return `<p>Gesamtweltcup: <b>${k<0?'ohne Punkte':(k+1)+'. mit '+st[k].pts+' Punkten'}</b>. Sieger:in: ${st[0]?nm(st[0].id):'–'}.</p><p class="mut">Beim Saisonstart altern alle, Stars treten zurück, neue Talente kommen – und dein Kader wird neu eingestuft.</p>`}
 function injuryCard(c){const g=c.g;const inj=S[g].inj[c.id];
@@ -2404,7 +2444,7 @@ function rTrain(){
   }else if(TST==='spons'){
     const card=(t,o)=>`<div class="card"><h2>${t}</h2>${o?`<p class="lead"><b>${esc(o.name)}</b> ${o.nat?flag(o.nat):''}</p><p class="small">${sponsorText(o)}</p><p class="mut small">${fmtCHF(o.base)} pro Saison · noch ${o.left} Saison${o.left>1?'en':''}</p>${t.startsWith('🎿')&&c.skiAdapt?`<p class="warn small">Eingewöhnung ans neue Material: noch ${c.skiAdapt} Rennen</p>`:''}`:`<p class="mut">Kein Vertrag.${t.startsWith('🎿')?' Ohne Ausrüster fährst du mit Material von der Stange (−0.2 Tempo).':''}</p>`}</div>`;
     body=`<div class="g2" style="margin-top:0">${card('🎿 Ski-Ausrüster',c.sp.ski)}${card('🧢 Kopfsponsor',c.sp.head)}</div>
-    <div class="card" style="margin-top:12px"><h2>📨 Angebote</h2><p class="mut small">Neue Angebote gibt es zu jedem Saisonstart und nach deinem ersten Podest der Saison. Bessere Ergebnisse und Kader = größere Marken und mehr Geld. Ein Ausrüsterwechsel braucht ein paar Rennen Eingewöhnung.</p>
+    <div class="card" style="margin-top:12px"><h2>📨 Angebote</h2><p class="mut small">💶 Podest- und Punkteprämien gibt es bei jedem Weltcup-Podest bzw. für jeden Weltcuppunkt, bei WM/Olympia-Medaillen sogar mehr (Gold doppelt). Von allen Sponsorgeldern gehen 25 % Steuern und 10 % Manager ab – netto bleiben 65 %.</p><p class="mut small">Neue Angebote gibt es zu jedem Saisonstart und nach deinem ersten Podest der Saison. Bessere Ergebnisse und Kader = größere Marken und mehr Geld. Ein Ausrüsterwechsel braucht ein paar Rennen Eingewöhnung.</p>
     ${(c.offers||[]).length?`<div class="stgrid">${c.offers.map((o,k)=>`<div class="offer"><div class="eyebrow">${o.type==='ski'?'Ski-Ausrüster':'Kopfsponsor'}${o.tier?' · '+'★'.repeat(o.tier):''}</div><b class="lead">${esc(o.name)} ${o.nat?flag(o.nat):''}</b><div class="small">${sponsorText(o)}</div><div class="small"><b>${fmtCHF(o.base)}</b>/Saison · ${o.years} Saison${o.years>1?'en':''}</div><button class="btn sm pri" data-sign="${k}">${c.sp[o.type]?'Wechseln':'Unterschreiben'}</button></div>`).join('')}</div>`:'<p class="mut">Gerade keine offenen Angebote.</p>'}</div>`;
   }else if(TST==='fin')body=rFin();
   else if(TST==='shop')body=shopCard(c);
