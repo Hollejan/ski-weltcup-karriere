@@ -637,7 +637,7 @@ const RISK={safe:'🛡 Sicher',norm:'⚖️ Normal',att:'🔥 Attacke'};
 
 // =============== ZUSTAND ===============
 const KEY='wcsim_v2';
-let S,ATH,BYID={},G='M',TAB='race',SEL={M:0,W:0},DTAB='DH',NTAB='ALL',AFILT='',LIVE=null,CF={g:'M',nat:'AUT',spec:'tech',name:''};
+let S,ATH,BYID={},G='M',TAB='race',SEL={M:0,W:0},DTAB='DH',NTAB='ALL',AFILT='',LIVE=null,CF={g:'M',nat:'AUT',spec:'tech',name:'',start:'youth'};
 function parseList(s,g){return s.trim().split('\n').map((l,i)=>{const p=l.split('|');return mkAth(g+i,p[0],p[1],{DH:+p[2],SG:+p[3],GS:+p[4],SL:+p[5]},+p[6])})}
 function mkAth(id,name,nat,r,by,pot){const best=Math.max(...Object.values(r));const age=2026-by;
   if(pot==null)pot=Math.min(99,best+(age<=21?4+rnd()*8:age<=24?2+rnd()*5:age<=27?rnd()*3:rnd()*1));
@@ -728,7 +728,7 @@ function startList(g,i,disc){
   let pool=ATH[g].filter(a=>a.r[disc]>=70&&available(g,a)&&!isMe(a.id));
   if(S.season===2026)pool=pool.filter(a=>{const p=STARTP[a.name]&&STARTP[a.name][disc];return p==null||rnd()<p});
   const wcx=wcsl(g,disc);const myTop30=me&&Object.entries(wcx).sort((x,y)=>y[1]-x[1]).slice(0,30).some(x=>x[0]===me.id);
-  if(me&&c.starts[disc]&&me.r[disc]>=60&&available(g,me)&&!c.skipNext&&(c.kader!=='X'||myTop30))pool.push(me);
+  if(me&&c.starts[disc]&&me.r[disc]>=60&&available(g,me)&&!c.skipNext&&(!isLow(c)||myTop30||ecDiscOk(c,disc)))pool.push(me);
   const st=standings(g,disc);const dp=wcsl(g,disc);const top30=new Set(Object.entries(dp).sort((x,y)=>y[1]-x[1]).slice(0,30).map(x=>x[0]));
   const key=a=>(dp[a.id]||0)*1000+a.r[disc]+(S[g].form[a.id]||0);
   pool.sort((a,b)=>key(b)-key(a));
@@ -947,18 +947,19 @@ function doneCount(g){return Object.keys(S[g].res).length}
 function newCareer(){
   if(CF.world==='reset'){const L=S.legends||[];const ch=S.chaos;S=fresh();S.legends=L;S.chaos=ch;rebuild();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}
   const g=CF.g;const nm=(CF.name||'').trim()||'Neues Talent';
-  const r={DH:62,SG:62,GS:62,SL:62};
-  if(CF.spec==='tech'){r.GS=74;r.SL=75}else if(CF.spec==='speed'){r.DH=74;r.SG=75}else{r.DH=71;r.SG=72;r.GS=72;r.SL=71}
+  const yo=CF.start!=='pro';const sa=yo?16:19;const dl=yo?16:0;
+  const r={DH:62-dl,SG:62-dl,GS:62-dl,SL:62-dl};
+  if(CF.spec==='tech'){r.GS=74-dl;r.SL=75-dl}else if(CF.spec==='speed'){r.DH=74-dl;r.SG=75-dl}else{r.DH=71-dl;r.SG=72-dl;r.GS=72-dl;r.SL=71-dl}
   const pot=84+Math.pow(rnd(),1.3)*13;const id=g+'me'+Date.now()%100000;
-  const a={id,name:nm,nat:CF.nat,r,by:S.season-19,pot:+pot.toFixed(1),me:1};
+  const a={id,name:nm,nat:CF.nat,r,by:S.season-sa,pot:+pot.toFixed(1),me:1};
   S.ath[g].push(a);
-  S.career={id,g,money:30000,fat:0,kond:50,mental:50,focus:CF.spec==='speed'?'speed':CF.spec==='tech'?'tech':'GS',risk:'norm',
+  S.career={id,g,money:yo?15000:30000,youth:yo?1:0,own:{},fat:0,kond:50,mental:50,focus:CF.spec==='speed'?'speed':CF.spec==='tech'?'tech':'GS',risk:'norm',
     starts:{DH:CF.spec!=='tech',SG:CF.spec!=='tech',GS:CF.spec!=='speed',SL:CF.spec!=='speed'},up:{service:0,trainer:0,physio:0},
-    kader:'C',stars:clamp(Math.round((pot-83)/2.8+(rnd()-.5)),1,5),ach:{},log:[],seasons:[],medals:[0,0,0],wins:0,pods:0,starts0:0,startSeason:S.season,prev:{},interactive:true,reha:'norm',trk:{},rust:0,reinj:0,xp:20,tlog:[],staff:{},sp:{},offers:[],pop:10,perks:{},press:[],diff:CF.diff||'norm',load:0,fails:0,goal:CF.goal||'overall',wear:0,body:0,legacy:0,tasksDone:0};
+    kader:yo?'J':'C',stars:clamp(Math.round((pot-83)/2.8+(rnd()-.5)),1,5),ach:{},log:[],seasons:[],medals:[0,0,0],wins:0,pods:0,starts0:0,startSeason:S.season,prev:{},interactive:true,reha:'norm',trk:{},rust:0,reinj:0,xp:20,tlog:[],staff:{},sp:{},offers:[],pop:10,perks:{},press:[],diff:CF.diff||'norm',load:0,fails:0,goal:CF.goal||'overall',wear:0,body:0,legacy:0,tasksDone:0};
   rebuild();G=g;TAB='home';pickRival();makeOffers();makeTasks();
   if(CF.leg&&S.legacy){const L=S.legacy;const st=L.stars;S.career.xp+=st*40;S.career.money+=st*25000;S.career.pop+=st*5;a.pot=Math.min(99,+(a.pot+st*0.6).toFixed(1));
     const md=mainDisc(a);a.r[md]=+(a.r[md]+st*0.5).toFixed(1);clog(`🧬 Vermächtnis von ${L.name} (${starStr(st)}): +${st*40} XP, +${fmtCHF(st*25000)}, mehr Talent`);S.legacy=null;CF.leg=false}
-  clog(`Karrierestart mit 19 Jahren für ${NATNAME[CF.nat]||CF.nat}. Kader: C.`);
+  clog(yo?`Karrierestart mit 16 Jahren für ${NATNAME[CF.nat]||CF.nat} – im Nachwuchs mit FIS-Rennen. Ziel: Europacup, dann Weltcup.`:`Karrierestart mit 19 Jahren für ${NATNAME[CF.nat]||CF.nat}. Kader: C.`);
   save();render();
 }
 function clog(t){const c=C();c.log.unshift(`${S.season}/${String(S.season+1).slice(2)} · ${t}`);c.log=c.log.slice(0,80)}
@@ -972,15 +973,16 @@ function careerAfterRace(g,i,res,disc,ctx){
   c.dayCost=[];
   c.lastDay={started,ri:i,rk:x?x.rk:null,st:o?o.st:null,pts:x?x.pts:0,prize:x?PRIZE[x.rk-1]||0:0};
   let ec=null;const mea=BYID[me];
-  if(!started&&c.kader==='X'&&c.starts[disc]&&mea.r[disc]>=60&&available(g,mea)&&!c.skipNext){ec=ecRace(disc);
-    spend('Reisen',800);spend('Material & Service',400);loadAdd(5);c.fat=clamp(c.fat+12*(1.3-c.kond/100),0,100);
-    if(ec.rk){xp.push(['Europacup Platz '+ec.rk,6+Math.round(ec.pts/8)]);if(ec.rk<=3)popAdd(0.5);earn('Preisgeld',Math.round((PRIZE[ec.rk-1]||0)/8))}else xp.push(['Europacup Ausfall',2]);
-    clog(`🇪🇺 Europacup ${DN[disc]} (parallel zu ${venue}): ${ec.rk?ec.rk+'. Platz (+'+ec.pts+' EC-Pkt)':'Ausfall'}`)}
+  if(!started&&isLow(c)&&c.starts[disc]&&mea.r[disc]>=minR(c)&&available(g,mea)&&!c.skipNext){const fis=c.kader==='J';ec=fis?fisRace(disc):ecRace(disc);
+    const lb=fis?'FIS-Rennen':'Europacup';spend('Reisen',fis?300:800);spend('Material & Service',fis?200:400);loadAdd(fis?4:5);c.fat=clamp(c.fat+(fis?10:12)*(1.3-c.kond/100),0,100);
+    if(ec.rk){xp.push([lb+' Platz '+ec.rk,6+Math.round(ec.pts/8)]);if(ec.rk<=3)popAdd(fis?0.3:0.5);if(!fis)earn('Preisgeld',Math.round((PRIZE[ec.rk-1]||0)/8))}else xp.push([lb+' Ausfall',2]);
+    clog(`${fis?'🏁 FIS-Rennen':'🇪🇺 Europacup'} ${DN[disc]} (parallel zu ${venue}): ${ec.rk?ec.rk+'. Platz (+'+ec.pts+(fis?' FIS-Pkt)':' EC-Pkt)'):'Ausfall'}`)}
+  const jw=maybeJWM(c,g,i);
   if(started){
     spend('Reisen',['USA','CAN'].includes(cal(g)[i][2])?3500:1200);spend('Material & Service',600+500*lvl('service'));
-    unlock('start');c.starts0++;
+    unlock('start');c.starts0++;if(c.starts0===1&&c.youth){press(`Weltcup-Debüt! ${BYID[me].name} ist ganz oben angekommen`);clog('🎉 Dein erstes Weltcuprennen!')}
     c.trk=c.trk||{};c.trk[res.tk]=(c.trk[res.tk]||0)+1;
-    c.wear=clamp((c.wear||0)+Math.max(1,5-lvl('service')-lvl('skitest')),0,100);bodyAdd(0.5+Math.max(0,age(BYID[me])-27)*0.12);
+    c.wear=clamp((c.wear||0)+Math.max(1,5-lvl('service')-lvl('skitest')-(own('wax')?1:0)),0,100);bodyAdd(0.5+Math.max(0,age(BYID[me])-27)*0.12);
     const tr=track(venue,disc);
     loadAdd(disc==='DH'||disc==='SG'?7:6);const pf=(disc==='DH'||disc==='SG'?19:15)*(tr.tire||1)*(1.3-c.kond/100)*(1-0.08*lvl('kond'))*(hasPerk('kond')?0.85:1);c.fat=clamp(c.fat+pf,0,100);if(c.skiAdapt)c.skiAdapt--;
     c.rust=Math.max(0,(c.rust||0)*0.75-0.1);c.reinj=Math.max(0,(c.reinj||0)-1);
@@ -1014,8 +1016,8 @@ function careerAfterRace(g,i,res,disc,ctx){
     if(x&&x.pts){c.ptsDisc=c.ptsDisc||{};c.ptsDisc[disc]=1}if(x&&x.rk===1){c.wonAt=c.wonAt||{};c.wonAt[res.tk]=1;recordCheck(c);
       if((venue==='Kitzbühel'&&disc==='DH'&&g==='M')||(venue==="Cortina d'Ampezzo"&&disc==='DH'&&g==='W'))c.classicWin=1}}
   if(started)racePress(g,i,res,x,o);c.motiv=0;if(c.skipNext&&!started)c.skipNext=0;
-  if(ec)c.lastDay.ec=ec;
-  careerDay(started||!!ec,xp,ec?`Europacup · ${DN[disc]}`:`${venue} · ${DN[disc]}`,gapDays(g,i));
+  if(ec)c.lastDay.ec=ec;if(jw)c.lastDay.jwm=jw;
+  careerDay(started||!!ec,xp,ec?`${ec.fis?'FIS-Rennen':'Europacup'} · ${DN[disc]}`:`${venue} · ${DN[disc]}`,gapDays(g,i));
 }
 function ageF(a){const x=age(a);return x<=21?1.25:x<=24?1.05:x<=27?0.8:x<=30?0.5:0.25}
 const INJT=[['Prellung',1,2,0.5,0],['Bänderdehnung',3,6,1.5,0],['Meniskusverletzung',7,12,3,0.8],['Kreuzbandriss',22,32,4.5,2]];
@@ -1050,7 +1052,8 @@ function pickRival(){
 }
 function careerGoal(c){
   const g=c.g;const me=c.id;
-  if(c.kader==='X'){const t=ecTotal(c);return{t:'Rückkehr in den Kader: 300 Europacup-Punkte oder 2 Europacup-Siege',ok:t>=300||(c.ec&&c.ec.wins>=2),p:`${t} Pkt · ${(c.ec&&c.ec.wins)||0} Siege`}}
+  if(c.kader==='J'){const t=fisTotal(c);const md=c.jwmMedS===S.season;return{t:'Aufstieg in den Europacup-Kader: 400 FIS-Punkte, 3 FIS-Siege oder eine Medaille bei der Junioren-WM',ok:t>=400||(c.fis&&c.fis.wins>=3)||md,p:`${t} FIS-Pkt · ${(c.fis&&c.fis.wins)||0} Siege${md?' · JWM-Medaille ✅':''}`}}
+  if(c.kader==='X'||c.kader==='E'){const t=ecTotal(c);return{t:c.kader==='E'?'Aufstieg in den Weltcup-Kader: 300 Europacup-Punkte oder 2 Europacup-Siege':'Rückkehr in den Kader: 300 Europacup-Punkte oder 2 Europacup-Siege',ok:t>=300||(c.ec&&c.ec.wins>=2),p:`${t} Pkt · ${(c.ec&&c.ec.wins)||0} Siege`}}
   if(c.kader==='C'){let n=0;cal(g).forEach((x,i)=>{const r=S[g].res[i];if(r&&r.fin.some(f=>f.id===me&&f.pts))n++});return{t:'In mindestens 3 Rennen Weltcuppunkte holen',ok:n>=3,p:`${n}/3`}}
   if(c.kader==='B'){const b=Math.min(...DISC.map(d=>{const k=standings(g,d).findIndex(o=>o.id===me);return k<0?99:k+1}));return{t:'In einer Disziplinwertung unter die Top 25 (Finalticket)',ok:b<=25,p:b<99?`bester Rang: ${b}.`:'noch keine Punkte'}}
   const pods=cal(g).filter((x,i)=>{const r=S[g].res[i];return r&&r.fin.some(f=>f.id===me&&f.rk<=3)}).length;
@@ -1070,18 +1073,19 @@ function dnum(md){const[m,d]=md.split('-').map(Number);return Date.UTC(m>=7?2001
 function gapDays(g,i){const c=cal(g);const n=c[i+1];return n?Math.max(1,dnum(n[0])-dnum(c[i][0])):7}
 function careerDay(started,xp,what,gap=3){
   const c=C();if(!c.lastDay||c.lastDay.what!==undefined)c.lastDay=c.lastDay||{};
-  if(!started)spend('Training',300);spend('Gehälter',Math.round(salaries()/40));c.lastDay.cost=c.dayCost;c.lastDay.what=what;checkDebt();const g=c.g;const hurt=S[g].inj[c.id]>0;
+  if(!started)spend('Training',c.kader==='J'?100:300);spend('Gehälter',Math.round(salaries()/40));c.lastDay.cost=c.dayCost;c.lastDay.what=what;checkDebt();const g=c.g;const hurt=S[g].inj[c.id]>0;
   if(!started){xp=xp.filter(x=>!x[0].startsWith('Training'));xp.push([hurt?'Reha-Tag':'Trainingstag',hurt?4:10])}
+  if(own('sim'))xp.push(['🥽 Simulator',3]);
   {const xm=DF().xp*(hasPerk('xpboost')?1.15:1);if(xm!==1)xp=xp.map(([t,v])=>[t,Math.round(v*xm)])}
   const sum=xp.reduce((n,x)=>n+x[1],0);c.xp=(c.xp||0)+sum;
   c.pop=Math.max(0,(c.pop||10)-0.25);
-  if(!started)loadAdd(-3);if(standings(c.g)[0]&&standings(c.g)[0].id===c.id&&standings(c.g)[1]){c.fat=clamp(c.fat+3,0,100)}const hd=c.sp&&c.sp.head;c.fat=hurt?0:clamp(c.fat-(clamp(2.2*gap,3,16)+(hd&&hd.perk==='fit'?4:0))*(1+0.15*lvl('physio'))*(hasPerk('recover')?1.2:1)*(1-Math.max(0,(c.load||0)-50)/100)*(1-(c.body||0)/250),0,100);
+  if(!started)loadAdd(-3);if(standings(c.g)[0]&&standings(c.g)[0].id===c.id&&standings(c.g)[1]){c.fat=clamp(c.fat+3,0,100)}const hd=c.sp&&c.sp.head;c.fat=hurt?0:clamp(c.fat-(clamp(2.2*gap,3,16)+(hd&&hd.perk==='fit'?4:0))*(1+0.15*lvl('physio'))*(hasPerk('recover')?1.2:1)*ownRec()*(1-Math.max(0,(c.load||0)-50)/100)*(1-(c.body||0)/250),0,100);
   c.trainPending={day:!started,hurt,what,xp,sum};
 }
 function trainGain(opt,int){
   const c=C();const a=BYID[c.id];const T=TINT[int];const dayF=Math.max(0.4,1-0.2*((c.trainPending&&c.trainPending.n)||0))*(hasPerk('learn')?1.1:1);const tm=dayF*(1+0.2*lvl(opt==='GS'||opt==='SL'?'tech':'speed'))*ageF(a)*(c.trainPending&&c.trainPending.day?1.4:1)*(S[c.g].inj[c.id]>0&&DN[opt]?0.3:1);
   if(DN[opt]){const room=Math.max(0,a.pot-a.r[opt]);return 0.8*T.g*tm*clamp(room/(a.pot-60),0.06,1)}
-  const v=opt==='kond'?c.kond:c.mental;return Math.max(0.4,1-0.2*((c.trainPending&&c.trainPending.n)||0))*T.s*(1+0.3*lvl(opt==='kond'?'kond':'mental'))*clamp((100-v)/50,0.15,1);
+  const v=opt==='kond'?c.kond:c.mental;return Math.max(0.4,1-0.2*((c.trainPending&&c.trainPending.n)||0))*T.s*(1+0.3*lvl(opt==='kond'?'kond':'mental'))*(opt==='kond'&&own('gym')?1.2:1)*clamp((100-v)/50,0.15,1);
 }
 function doTrain(opt){
   const c=C();const a=BYID[c.id];const tp=c.trainPending;if(!tp)return;
@@ -1103,7 +1107,7 @@ function doTrainSilent(){const c=C();const tp=c.trainPending;if(!tp)return;
 
 // ---------- Finanzen ----------
 function earn(cat,v,prov){const c=C();if(!v)return;if(cat==='Sponsoren'&&hasPerk('sponsor'))v=Math.round(v*1.15);c.money+=v;c.fin=c.fin||{inc:{},exp:{}};c.fin.inc[cat]=(c.fin.inc[cat]||0)+v;if(prov){spend('Steuern (25 %)',Math.round(v*0.25))}if(prov)spend('Manager (10 %)',Math.round(v*0.1))}
-function spend(cat,v){const c=C();if(!v)return;if(hasPerk('saver')&&(cat==='Reisen'||cat==='Material & Service'))v=Math.round(v*0.8);if(cat!=='Ablösen'&&cat!=='Trainingslager')v=Math.round(v*DF().cost);c.money-=v;c.fin=c.fin||{inc:{},exp:{}};c.fin.exp[cat]=(c.fin.exp[cat]||0)+v;(c.dayCost=c.dayCost||[]).push([cat,v])}
+function spend(cat,v){const c=C();if(!v)return;if(hasPerk('saver')&&(cat==='Reisen'||cat==='Material & Service'))v=Math.round(v*0.8);if(cat==='Reisen')v=Math.round(v*(own('van')?0.78:own('car1')?0.9:1));if(cat!=='Ablösen'&&cat!=='Trainingslager')v=Math.round(v*DF().cost);c.money-=v;c.fin=c.fin||{inc:{},exp:{}};c.fin.exp[cat]=(c.fin.exp[cat]||0)+v;(c.dayCost=c.dayCost||[]).push([cat,v])}
 function dailyCost(){return Math.round(salaries()/40)+600+500*lvl('service')+1200}
 function checkDebt(){const c=C();if(c.money>=0)return;const ids=Object.entries(c.staff||{}).sort((a,b)=>SAL[SBY[b[1]].l]-SAL[SBY[a[1]].l]);
   if(ids.length){const[r,id]=ids[0];delete c.staff[r];const m=`💸 Konto im Minus – ${SBY[id].name} (${ROLES[r].n}) kündigt`;clog(m);toast(m)}}
@@ -1137,9 +1141,9 @@ const SKI=[['Atomic','AUT',3,{DH:.3,SG:.3,GS:.3,SL:.3}],['Head','AUT',3,{DH:.45,
  ['Dynastar','FRA',1,{GS:.25,SL:.25}],['Blizzard','AUT',1,{SL:.3,GS:.2}],['Elan','SLO',1,{SL:.25,GS:.2}],['Kästle','AUT',1,{DH:.25,SG:.25}],['Nordica','ITA',1,{DH:.2,SG:.2,GS:.15}],['Van Deer','ITA',1,{GS:.3,SL:.2}]];
 const HEADS=[['Alpenmilch','points','Prämie pro Weltcuppunkt'],['Gipfelbank','base','Hohes Fixum'],['Pistenstrom Energie','fit','+4 Erholung pro Tag'],['Bergkristall Uhren','podium','Hohe Podestprämie'],
  ['Schneekönig Versicherung','xp','+3 XP pro Zielankunft'],['Hüttenzauber Getränke','points','Prämie pro Weltcuppunkt'],['Talblick Hotels','base','Hohes Fixum'],['Föhnwind Mobility','xp','+3 XP pro Zielankunft']];
-function statusTier(){const c=C();let t={A:3,B:2,C:1}[c.kader];if(c.pods>0)t=Math.min(3,t+1);return t}
+function statusTier(){const c=C();let t={A:3,B:2,C:1,E:1,J:1,X:1}[c.kader];if(c.pods>0)t=Math.min(3,t+1);return t}
 function makeOffers(){
-  const c=C();const t=statusTier();const fame=(1+Math.min(1.5,c.wins*0.05+c.pods*0.02))*(0.8+(c.pop||10)/100*0.8)*(1+0.12*lvl('agent'));const offers=[];
+  const c=C();const t=statusTier();const fame=(1+Math.min(1.5,c.wins*0.05+c.pods*0.02))*(0.8+(c.pop||10)/100*0.8)*(1+0.12*lvl('agent'))*(c.kader==='J'?0.35:c.kader==='E'?0.7:1);const offers=[];
   const skis=shuffle(SKI.filter(s=>s[2]<=t&&s[2]>=t-1&&(!c.sp.ski||c.sp.ski.name!==s[0]))).slice(0,3);
   skis.forEach(s=>{const base=Math.round(([0,20000,60000,160000][s[2]]*(0.8+rnd()*0.5)*fame)/1000)*1000;
     const o={type:'ski',name:s[0],nat:s[1],tier:s[2],mat:s[3],base,pod:[0,4000,8000,15000][s[2]],years:1+Math.floor(rnd()*3)};makeTarget(o,s[2]);offers.push(o)});
@@ -1160,7 +1164,7 @@ function skiBonus(d){const c=C();return c&&c.sp&&c.sp.ski?c.sp.ski.mat[d]||0:-0.
 function sponsorSeason(){const c=C();for(const k of['ski','head']){const s=c.sp[k];if(!s)continue;s.left--;if(s.left>0){earn('Sponsoren',s.base,true);clog(`💶 ${s.name}: ${fmtCHF(s.base)} Saisonprämie`)}else{clog(`📄 Vertrag mit ${s.name} ausgelaufen`);delete c.sp[k]}}}
 function migrateCareer(){const c=C();if(!c)return;if(!c.goal)c.goal='overall';if(c.wear==null)c.wear=0;if(c.body==null)c.body=0;if(c.legacy==null)c.legacy=0;if(!c.tasks)makeTasks();c.diff=c.diff||'norm';if(c.load==null)c.load=0;if(c.pop==null)c.pop=10;c.perks=c.perks||{};c.press=c.press||[];
   if(!c.staff){c.staff={};const m={service:'v',physio:'p',trainer:'t'};for(const k in (c.up||{}))if(c.up[k]>0)c.staff[{service:'service',physio:'physio',trainer:'tech'}[k]]=m[k]+Math.min(3,c.up[k])}
-  if(!c.sp){c.sp={};makeOffers()}if(c.xp==null)c.xp=0;if(!c.tlog)c.tlog=[]}
+  c.own=c.own||{};if(!c.sp){c.sp={};makeOffers()}if(c.xp==null)c.xp=0;if(!c.tlog)c.tlog=[]}
 
 // =============== ERWEITERUNGEN ===============
 // ---------- Spezialfähigkeiten ----------
@@ -1298,10 +1302,82 @@ function ecRace(disc){
   const c=C();const a=BYID[c.id];c.ec=c.ec||{pts:{DH:0,SG:0,GS:0,SL:0},wins:0};
   const me=a.r[disc]+(S[c.g].form[a.id]||0)-Math.max(0,c.fat-35)*0.07+gauss()*3;
   if(rnd()<DNFP[disc]*1.1)return{st:'DNF'};
-  let rk=1;for(let k=0;k<55;k++){if(74+gauss()*4.2+gauss()*3>me)rk++}
+  let rk=1;for(let k=0;k<55;k++){if(70+gauss()*4.2+gauss()*3>me)rk++}
   const pts=rk<=30?PTS[rk-1]:0;c.ec.pts[disc]+=pts;if(rk===1)c.ec.wins++;return{rk,pts};
 }
 const ecTotal=c=>c.ec?Object.values(c.ec.pts).reduce((a,b)=>a+b,0):0;
+
+// ---------- Weg nach oben: Nachwuchs, FIS-Rennen, Junioren-WM ----------
+const isLow=c=>['J','E','X'].includes(c.kader);
+const KLBL={J:'🌱 Nachwuchs',E:'🇪🇺 Europacup-Kader',X:'ohne Kader'};
+const kLbl=c=>KLBL[c.kader]||'Kader '+c.kader;
+const minR=c=>c.kader==='J'?40:60;
+const ecDiscOk=(c,d)=>c.kader==='E'&&!!c.ec&&c.ec.pts[d]>=150;
+function fisRace(disc){
+  const c=C();const a=BYID[c.id];c.fis=c.fis||{pts:{DH:0,SG:0,GS:0,SL:0},wins:0};
+  const me=a.r[disc]+(S[c.g].form[a.id]||0)-Math.max(0,c.fat-35)*0.07+gauss()*3.5;
+  if(rnd()<DNFP[disc]*1.2)return{st:'DNF',fis:1};
+  let rk=1;for(let k=0;k<70;k++){if(60+gauss()*5+gauss()*3>me)rk++}
+  const pts=rk<=30?PTS[rk-1]:0;c.fis.pts[disc]+=pts;if(rk===1)c.fis.wins++;return{rk,pts,fis:1};
+}
+const fisTotal=c=>c.fis?Object.values(c.fis.pts).reduce((a,b)=>a+b,0):0;
+function jwmRace(c){const a=BYID[c.id];const d=mainDisc(a);
+  const me=a.r[d]+(S[c.g].form[a.id]||0)-Math.max(0,c.fat-35)*0.07+gauss()*3.5;
+  if(rnd()<DNFP[d])return{d,st:'DNF'};let rk=1;for(let k=0;k<45;k++){if(65+gauss()*5+gauss()*3>me)rk++}return{d,rk}}
+function maybeJWM(c,g,i){
+  const a=BYID[c.id];const m=+cal(g)[i][0].slice(0,2);
+  if(age(a)>20||c.jwmS===S.season||![2,3].includes(m)||S[g].inj[c.id]>0)return null;
+  c.jwmS=S.season;const r=jwmRace(c);const nat=NATNAME[a.nat]||a.nat;
+  spend('Reisen',1500);c.fat=clamp(c.fat+10,0,100);
+  if(r.rk&&r.rk<=3){c.jwm=c.jwm||[0,0,0];c.jwm[r.rk-1]++;c.jwmMedS=S.season;popAdd([6,4,3][r.rk-1]);earn('Prämien',[8000,5000,3000][r.rk-1]);c.xp=(c.xp||0)+25;
+    const md=['🥇 Gold','🥈 Silber','🥉 Bronze'][r.rk-1];clog(`🎓 Junioren-WM ${DN[r.d]}: ${md}! (+25 XP)`);toast(`🎓 Junioren-WM: ${md} im ${DN[r.d]}!`);press(`${md} bei der Junioren-WM: ${a.name} ist die Zukunft von ${nat}`)}
+  else if(r.rk){c.xp=(c.xp||0)+10;clog(`🎓 Junioren-WM ${DN[r.d]}: ${r.rk}. Platz (+10 XP)`);if(r.rk<=10)press(`Starker ${r.rk}. Platz für ${a.name} bei der Junioren-WM`)}
+  else{clog(`🎓 Junioren-WM ${DN[r.d]}: ausgeschieden`)}
+  return r;
+}
+
+// ---------- Besitz: Dinge, die man sich kaufen kann ----------
+const SHOPCAT={mob:'🚗 Unterwegs',home:'🏠 Wohnen',gear:'🏋️ Training & Material',life:'🐾 Privat',inv:'📈 Investments'};
+// [id, Kategorie, Name, Preis, Unterhalt/Saison, Effekt, Mindestalter, Einnahmen/Saison]
+const SHOP=[
+ ['car1','mob','🚗 Gebrauchtwagen',9000,1500,'Reisekosten −10 %',18,0],
+ ['van','mob','🚐 Camper-Van',65000,4000,'Reisekosten −22 %, Erholung +4 %',18,0],
+ ['sport','mob','🏎 Sportwagen',140000,8000,'+10 Beliebtheit sofort, +2 Mental pro Saison',18,0],
+ ['flat','home','🏢 Eigene Wohnung',220000,6000,'Erholung +5 %, +3 Mental pro Saison',18,0],
+ ['chalet','home','🏔 Chalet in den Bergen',950000,15000,'Erholung +10 %, +5 Mental pro Saison, +5 Beliebtheit sofort',18,0],
+ ['gym','gear','🏋️ Heim-Kraftraum',25000,1000,'Konditionstraining +20 %',0,0],
+ ['cryo','gear','🧊 Kältekammer',45000,2500,'Erholung +8 %',0,0],
+ ['sim','gear','🥽 Ski-Simulator (VR)',80000,3000,'+3 XP an jedem Renn- und Trainingstag',0,0],
+ ['wax','gear','🔧 Eigener Wachsraum',30000,2000,'Ski verschleißen langsamer',0,0],
+ ['dog','life','🐕 Hund',2500,1200,'+2 Mental pro Saison – und jemand freut sich immer',0,0],
+ ['watch','life','⌚ Luxusuhr',35000,0,'+4 Beliebtheit sofort',0,0],
+ ['acad','life','🎁 Spende an den Heimatverein',50000,0,'+10 Beliebtheit und +2 Mental sofort (nicht verkaufbar)',0,0],
+ ['hut','inv','🛖 Anteil an einer Skihütte',300000,0,'+24.000 CHF Gewinn pro Saison',18,24000],
+ ['school','inv','⛷ Eigene Skischule im Heimatort',600000,10000,'+60.000 CHF pro Saison, +3 Beliebtheit pro Saison',18,60000],
+ ['hotel','inv','🏨 Hotel am Heimatberg',2500000,40000,'+220.000 CHF pro Saison – Absicherung für nach der Karriere',18,220000]];
+const SHOPBY={};SHOP.forEach(x=>SHOPBY[x[0]]=x);
+const own=k=>{const c=C();return !!(c&&c.own&&c.own[k])};
+function ownRec(){return 1+(own('flat')?0.05:0)+(own('chalet')?0.1:0)+(own('cryo')?0.08:0)+(own('van')?0.04:0)}
+function buyItem(k){const c=C();const it=SHOPBY[k];c.own=c.own||{};if(c.own[k]||c.money<it[3]||age(BYID[c.id])<it[6])return;
+  spend('Anschaffungen',it[3]);c.own[k]=S.season;
+  if(k==='sport')popAdd(10);if(k==='chalet')popAdd(5);if(k==='watch')popAdd(4);if(k==='acad'){popAdd(10);c.mental=clamp(c.mental+2,0,100);press(`${BYID[c.id].name} spendet 50.000 CHF an den Heimatverein`)}
+  if(k==='hotel')press(`${BYID[c.id].name} kauft ein Hotel am Heimatberg`);
+  clog(`🛍 Gekauft: ${it[2]} für ${fmtCHF(it[3])}`);toast(`🛍 ${it[2]} gehört jetzt dir!`);save();render()}
+function sellItem(k){const c=C();const it=SHOPBY[k];if(!own(k)||k==='acad')return;const v=Math.round(it[3]*(it[1]==='inv'||it[1]==='home'?0.85:0.5)/100)*100;
+  delete c.own[k];earn('Verkäufe',v);clog(`💱 Verkauft: ${it[2]} für ${fmtCHF(v)}`);toast(`💱 ${it[2]} verkauft`);save();render()}
+function ownSeason(c){if(!c.own)return;let inc=0,up=0,men=0;
+  for(const k in c.own){const it=SHOPBY[k];if(!it)continue;inc+=it[7];up+=it[4]}
+  men+=(own('sport')?2:0)+(own('flat')?3:0)+(own('chalet')?5:0)+(own('dog')?2:0);if(own('school'))popAdd(3);
+  if(inc)earn('Besitz & Investments',inc);if(up)spend('Unterhalt Besitz',up);if(men)c.mental=clamp(c.mental+men,0,100);
+  if(inc||up)clog(`🏠 Besitz: ${inc?'+'+fmtCHF(inc)+' Einnahmen, ':''}${fmtCHF(up)} Unterhalt${men?`, Mental +${men}`:''}`)}
+function shopCard(c){const a=BYID[c.id];const ag=age(a);c.own=c.own||{};
+  const mine=Object.keys(c.own).filter(k=>SHOPBY[k]);
+  const up=mine.reduce((n,k)=>n+SHOPBY[k][4],0),inc=mine.reduce((n,k)=>n+SHOPBY[k][7],0);
+  return `<div class="card" style="margin-bottom:12px"><h2>🛍 Dein Besitz</h2><p style="margin:0">Konto <b class="${c.money<0?'bad':''}">${fmtCHF(c.money)}</b>${mine.length?` · Unterhalt <b class="bad">${fmtCHF(up)}</b>/Saison${inc?` · Einnahmen <b class="ok">${fmtCHF(inc)}</b>/Saison`:''}`:''}</p>
+    ${mine.length?`<div class="xpline" style="margin-top:8px">${mine.map(k=>`<span class="pill">${SHOPBY[k][2]}</span>`).join('')}</div>`:'<p class="mut small">Du besitzt noch nichts Besonderes. Preisgeld will ausgegeben werden – oder klug angelegt.</p>'}
+    <p class="mut small">Unterhalt und Einnahmen werden zu jedem Saisonstart verbucht. Verkaufen bringt bei Immobilien und Investments 85 %, sonst 50 % zurück.</p></div>
+   ${Object.entries(SHOPCAT).map(([ck,ct])=>`<div class="card" style="margin-bottom:12px"><h2>${ct}</h2>${SHOP.filter(x=>x[1]===ck).map(([k,,n,pr,upk,d,ma])=>{const has=c.own[k];
+     return `<div class="cand"><div><b>${n}</b>${has?' <span class="pill">✓ gehört dir</span>':''}<div class="ok small">${d}</div><div class="small">${fmtCHF(pr)}${upk?` · Unterhalt ${fmtCHF(upk)}/Saison`:''}</div></div>${has?(k==='acad'?'':`<button class="btn sm ghost" data-sell="${k}">Verkaufen</button>`):`<button class="btn sm" style="white-space:nowrap" data-buy="${k}" ${c.money<pr||ag<ma?'disabled':''}>${ag<ma?`ab ${ma} J.`:'Kaufen'}</button>`}</div>`}).join('')}</div>`).join('')}`}
 
 // ---------- Sponsorziele ----------
 function makeTarget(o,t){
@@ -1570,15 +1646,20 @@ function nextSeason(){
     else if(c.h2h&&c.rival)clog(`⚔️ Saisonduell gegen ${BYID[c.rival]?BYID[c.rival].name:'Rivale'}: ${c.h2h.w}:${c.h2h.l}`);
     if(k>=0&&!st.slice(0,k).some(o=>BYID[o.id].nat===me.nat))unlock('leader');
     taskSeason();
-    const goal=careerGoal(c);if(goal.ok){earn('Prämien',40000);clog('✅ Saisonziel erreicht: +40.000 CHF Bonus')}else clog('❌ Saisonziel verpasst');
+    const goal=careerGoal(c);if(goal.ok){const bn=isLow(c)?10000:40000;earn('Prämien',bn);clog(`✅ Saisonziel erreicht: +${fmtCHF(bn)} Bonus`)}else clog('❌ Saisonziel verpasst');
     c.seasons.push({s:S.season,age:age(me),rk:k<0?'–':k+1,pts:k<0?0:st[k].pts,wins,pods,best,kader:c.kader,r:{...me.r}});
-    const b=Math.min(...best);const wasX=c.kader==='X';let nk=b<=10||(k>=0&&k<15)?'A':b<=30?'B':'C';
-    if(wasX){const ok=ecTotal(c)>=300||(c.ec&&c.ec.wins>=2)||nk!=='C';if(ok){nk=nk==='C'?'C':nk;c.fails=0;clog('🔙 Zurück im Kader! Der Europacup hat sich gelohnt.');press(`${me.name} kämpft sich zurück in den Kader`)}else nk='X'}
+    const b=Math.min(...best);const wasX=c.kader==='X'||c.kader==='E';let nk=b<=10||(k>=0&&k<15)?'A':b<=30?'B':'C';
+    if(c.kader==='J'){if(goal.ok){nk='E';clog('⬆️ Aufstieg in den Europacup-Kader! Jetzt geht es gegen die Besten von morgen.');press(`${me.name} steigt in den Europacup-Kader auf`);toast('⬆️ Aufstieg in den Europacup-Kader!')}
+      else if(age(me)>=20){nk='X';clog('🚫 Zu alt für den Nachwuchskader – du kämpfst dich als Privatfahrer:in über den Europacup nach oben.')}
+      else{nk='J';clog('🌱 Noch eine Saison im Nachwuchs – weiter FIS-Rennen.')}}
+    else if(wasX){const ok=ecTotal(c)>=300||(c.ec&&c.ec.wins>=2)||nk!=='C';if(ok){nk=nk==='C'?'C':nk;c.fails=0;
+      if(c.kader==='E'){clog('⬆️ Aufstieg in den Weltcup-Kader! Ab jetzt fährst du jedes Wochenende gegen die Stars.');press(`${me.name} schafft den Sprung in den Weltcup-Kader`);toast('⬆️ Du bist im Weltcup-Kader!')}
+      else{clog('🔙 Zurück im Kader! Der Europacup hat sich gelohnt.');press(`${me.name} kämpft sich zurück in den Kader`)}}else nk=c.kader}
     else if(nk==='C'&&!goal.ok){c.fails=(c.fails||0)+1;if(c.fails>=2){nk='X';clog('🚫 Aus dem Kader geflogen! Zurück in den Europacup.');press(`Bitter: ${me.name} verliert den Kaderplatz`)}else clog('⚠️ Verwarnung vom Verband: Noch ein verpasstes Saisonziel und du fliegst aus dem Kader.')}
     else if(goal.ok)c.fails=0;
-    c.kader=nk;c.ec={pts:{DH:0,SG:0,GS:0,SL:0},wins:0};
-    c.finPrev=c.fin;c.fin={inc:{},exp:{}};const spons={A:60000,B:40000,C:30000,X:0}[c.kader];earn('Verband',spons);spend('Fixkosten',15000);c.dayCost=[];
-    clog(`Neue Saison: ${c.kader==='X'?'ohne Kader (Europacup)':'Kader '+c.kader}, Verbandsförderung ${fmtCHF(spons)}, Fixkosten −15.000 CHF`);
+    c.kader=nk;c.ec={pts:{DH:0,SG:0,GS:0,SL:0},wins:0};c.fis={pts:{DH:0,SG:0,GS:0,SL:0},wins:0};
+    c.finPrev=c.fin;c.fin={inc:{},exp:{}};const spons={A:60000,B:40000,C:30000,E:25000,J:3000,X:0}[c.kader];const fixk=c.kader==='J'?6000:15000;earn('Verband',spons);if(c.kader==='J'){earn('Eltern & Heimatverein',18000);clog('👨‍👩‍👧 Eltern & Heimatverein unterstützen dich mit 18.000 CHF')}spend('Fixkosten',fixk);ownSeason(c);c.dayCost=[];
+    clog(`Neue Saison: ${c.kader==='X'?'ohne Kader (Europacup)':kLbl(c)}, Verbandsförderung ${fmtCHF(spons)}, Fixkosten −${fmtCHF(fixk)}`);
     checkSponsorGoals();sponsorSeason();c.offerFlag=0;
     c.prev={...me.r};}
   S.hist.unshift(h);
@@ -1779,7 +1860,7 @@ function rTop(){
     :`<button class="btn pri" data-act="one">▶ Nächster Renntag</button><button class="btn" data-act="live" title="Nächstes Rennen live">📺 Live</button>`;
   return `<header class="top"><div class="who">
     <div class="avatar">${flag(a.nat)}</div>
-    <div><div class="nm">${esc(a.name)} <span class="pill ${c.kader==='X'?'badpill':''}">${c.kader==='X'?'ohne Kader':'Kader '+c.kader}</span>${c.diff&&c.diff!=='norm'?`<span class="pill">${DIFF[c.diff].n}</span>`:''}${standings(g)[0]&&standings(g)[0].id===c.id&&standings(g)[1]?'<span class="pill huntpill">🎯 Gejagt</span>':''}</div>
+    <div><div class="nm">${esc(a.name)} <span class="pill ${c.kader==='X'?'badpill':''}">${kLbl(c)}</span>${c.diff&&c.diff!=='norm'?`<span class="pill">${DIFF[c.diff].n}</span>`:''}${standings(g)[0]&&standings(g)[0].id===c.id&&standings(g)[1]?'<span class="pill huntpill">🎯 Gejagt</span>':''}</div>
     <div class="sub">${age(a)} Jahre · ${g==='M'?'Herren':'Damen'} · Saison ${sLbl()}</div></div></div>
     <div class="kpis">
       <div><span>Gesamt</span><b>${k<0?'–':(k+1)+'.'}</b></div>
@@ -1815,8 +1896,9 @@ function rHome(){
   if(ph==='train'){const tp=c.trainPending;const ld=c.lastDay||{};
     h+=phaseBar('train',`<b>${tp.hurt?'REHA':'TRAINING'}</b> · ${esc(tp.what)}`);
     h+=injuryCard(c);
-    const res=ld.ec?(ld.ec.rk?`<div class="bigres">${ld.ec.rk}.</div><p>🇪🇺 Europacup · +${ld.ec.pts} EC-Punkte · gesamt ${ecTotal(c)}</p>`:`<div class="bigres bad">DNF</div><p class="mut">Europacup – ausgeschieden</p>`):ld.started?(ld.rk?`<div class="bigres">${ld.rk}.</div><p>${ld.pts?`+${ld.pts} Weltcuppunkte`:'keine Punkte'}${ld.prize?` · ${fmtCHF(ld.prize)} Preisgeld`:''}</p>`:`<div class="bigres bad">${ld.st==='DNQ'?'n.q.':'DNF'}</div><p class="mut">${ld.st==='DNQ'?'Nicht für den 2. Lauf qualifiziert':'Ausgeschieden'}</p>`)
-      :`<div class="bigres mut">–</div><p class="mut">${tp.hurt?'Verletzt – heute Reha.':'Kein Start heute – ganzer Trainingstag.'}</p>`;
+    const jw=ld.jwm?`<p class="${ld.jwm.rk&&ld.jwm.rk<=3?'ok':''}"><b>🎓 Junioren-WM ${DN[ld.jwm.d]}:</b> ${ld.jwm.rk?(ld.jwm.rk<=3?['🥇 Gold','🥈 Silber','🥉 Bronze'][ld.jwm.rk-1]:ld.jwm.rk+'. Platz'):'ausgeschieden'}</p>`:'';
+    const res=(ld.ec?(ld.ec.rk?`<div class="bigres">${ld.ec.rk}.</div><p>${ld.ec.fis?`🏁 FIS-Rennen · +${ld.ec.pts} FIS-Punkte · gesamt ${fisTotal(c)}`:`🇪🇺 Europacup · +${ld.ec.pts} EC-Punkte · gesamt ${ecTotal(c)}`}</p>`:`<div class="bigres bad">DNF</div><p class="mut">${ld.ec.fis?'FIS-Rennen':'Europacup'} – ausgeschieden</p>`):ld.started?(ld.rk?`<div class="bigres">${ld.rk}.</div><p>${ld.pts?`+${ld.pts} Weltcuppunkte`:'keine Punkte'}${ld.prize?` · ${fmtCHF(ld.prize)} Preisgeld`:''}</p>`:`<div class="bigres bad">${ld.st==='DNQ'?'n.q.':'DNF'}</div><p class="mut">${ld.st==='DNQ'?'Nicht für den 2. Lauf qualifiziert':'Ausgeschieden'}</p>`)
+      :`<div class="bigres mut">–</div><p class="mut">${tp.hurt?'Verletzt – heute Reha.':'Kein Start heute – ganzer Trainingstag.'}</p>`)+jw;
     h+=`<div class="g21" style="margin-top:0">${trainCard(c)}<div class="card day-card"><h2>Tagesbilanz</h2><p class="mut">${esc(tp.what)}</p>${res}
       ${ld.started&&ld.ri!=null?`<p><button class="btn sm ghost" data-goto="${ld.ri}">Ergebnisliste →</button></p>`:''}
       <h3>Kosten heute</h3><table class="small">${(ld.cost||[]).map(([t,v])=>`<tr><td>${t}</td><td class="r bad">−${fmtCHF(v)}</td></tr>`).join('')}</table>
@@ -1832,12 +1914,12 @@ function rHome(){
       <div class="status ${mine?'ok':'mut'}">${mine?'✅ Du bist nominiert und fährst selbst!':'Du bist für diesen Bewerb nicht nominiert (max. 4 pro Nation) – Trainingstag.'}</div>
       <p class="row-btn"><button class="btn pri" data-act="one">${mine?'🎿 Ab ins Starthaus':'▶ Bewerb verfolgen'}</button></p></div>`}
     else{const d=x[3];const st=myStatus(g,ni);const num=cal(g).slice(0,ni+1).filter(y=>y[3]!=='WM').length;
-      info=`<b>VORBEREITUNG</b> · ${dfmt(x)} ${DN[d]} ${esc(x[1])} · ${st.cls==='ok'?'du startest':st.cls==='ec'?'Europacup':'Trainingstag'}`;
+      info=`<b>VORBEREITUNG</b> · ${dfmt(x)} ${DN[d]} ${esc(x[1])} · ${st.cls==='ok'?'du startest':st.cls==='ec'?(c.kader==='J'?'FIS-Rennen':'Europacup'):'Trainingstag'}`;
       next=`<div class="card hero-card"><div class="eyebrow">Nächster Renntag · Rennen ${num} · ${dfmt(x)}${yearOf(x)}</div>
       <h2 class="big">${tag(d)} ${DN[d]} ${flag(x[2])} ${esc(x[1])}</h2>${trackInfo(x[1],d,g)}
       <div class="status ${st.cls}">${st.t}</div>
-      ${a.r[d]>=60?`<div class="inline"><span class="mut">Start:</span> <button class="chip ${c.starts[d]?'on':''}" data-start="${d}">${c.starts[d]?'✓ Ich starte':'⏸ Pause – tippen zum Starten'}</button></div>`:''}
-      <p class="row-btn"><button class="btn pri" data-act="one">${st.cls==='ok'?'🎿 Ab ins Starthaus':st.cls==='ec'?'🇪🇺 Zum Europacup':'▶ Trainingstag'}</button>${st.cls!=='ok'?'<button class="btn" data-act="live">📺 Rennen live ansehen</button>':''}</p></div>`}}
+      ${a.r[d]>=minR(c)?`<div class="inline"><span class="mut">Start:</span> <button class="chip ${c.starts[d]?'on':''}" data-start="${d}">${c.starts[d]?'✓ Ich starte':'⏸ Pause – tippen zum Starten'}</button></div>`:''}
+      <p class="row-btn"><button class="btn pri" data-act="one">${st.cls==='ok'?'🎿 Ab ins Starthaus':st.cls==='ec'?(c.kader==='J'?'🏁 Zum FIS-Rennen':'🇪🇺 Zum Europacup'):'▶ Trainingstag'}</button>${st.cls!=='ok'?'<button class="btn" data-act="live">📺 Rennen live ansehen</button>':''}</p></div>`}}
   h+=phaseBar('prep',info);
   if(c.event)h+=eventCard();
   h+=injuryCard(c);
@@ -1846,8 +1928,8 @@ function rHome(){
   h+=`<div class="g3">
    <div class="card"><h2>Körper & Kopf</h2>${bar('Fitness',100-c.fat,'f2')}${bar('Belastung',c.load||0,'f')}${bar('Kondition',c.kond)}${bar('Mental',c.mental)}
     ${c.rust>0.05?`<p class="mut small">💪 Comeback-Rost: −${c.rust.toFixed(1)}</p>`:''}${wearBlock(c)}<p class="mut small">Saisonbelastung: ${loadLbl(c.load||0)}. Über 50 erholst du dich schlechter, über 60 wirst du langsamer und verletzt dich leichter. Ruhetage und ausgelassene Rennen bauen sie ab.</p></div>
-   <div class="card"><h2>🎯 Saisonziel</h2><p class="lead">${goal.ok?'✅':'⬜'} ${goal.t}</p><p class="mut">${goal.p}${c.kader==='X'?'':' · Bonus 40.000 CHF'}</p>${c.fails?'<p class="bad small"><b>⚠️ Verwarnt:</b> Verfehlst du das Ziel erneut, fliegst du aus dem Kader.</p>':''}</div>
-   <div class="card"><h2>💰 Konto & Fans</h2><p class="lead ${c.money<0?'bad':''}"><b>${fmtCHF(c.money)}</b></p><p class="small">📣 Beliebtheit ${Math.round(c.pop||10)} – ${popLabel(c.pop||10)}</p><p class="mut small">Laufende Kosten ca. ${fmtCHF(dailyCost())} pro Renntag${c.money<0?' · <b class="bad">Im Minus: Betreuer kündigen!</b>':''}</p></div>
+   <div class="card"><h2>🎯 Saisonziel</h2><p class="lead">${goal.ok?'✅':'⬜'} ${goal.t}</p><p class="mut">${goal.p} · Bonus ${isLow(c)?'10.000':'40.000'} CHF</p>${c.fails?'<p class="bad small"><b>⚠️ Verwarnt:</b> Verfehlst du das Ziel erneut, fliegst du aus dem Kader.</p>':''}</div>
+   <div class="card"><h2>💰 Konto & Fans</h2><p class="lead ${c.money<0?'bad':''}"><b>${fmtCHF(c.money)}</b></p><p class="small">📣 Beliebtheit ${Math.round(c.pop||10)} – ${popLabel(c.pop||10)}</p>${c.own&&Object.keys(c.own).length?`<p class="small">${Object.keys(c.own).filter(k=>SHOPBY[k]).map(k=>SHOPBY[k][2].split(' ')[0]).join(' ')} <span class="mut">Besitz</span></p>`:''}<p class="mut small">Laufende Kosten ca. ${fmtCHF(dailyCost())} pro Renntag${c.money<0?' · <b class="bad">Im Minus: Betreuer kündigen!</b>':''}</p></div>
   </div>`;
   h+=`<div class="g2">${tasksCard()}${pressCard(3)}</div><div class="g2"><div class="card"><h2>Deine letzten Rennen</h2>${myResults(8)}</div><div class="card"><h2>Weltcup-Ticker</h2><div class="news">${S[g].news.slice(0,8).map(n=>`<div>${n}</div>`).join('')||'<span class="mut">Noch nichts passiert.</span>'}</div></div></div>`;
   return h;
@@ -1942,11 +2024,14 @@ function trainCard(c){
 function bar(l,v,cls=''){return `<div class="rat"><span class="mut small">${l}</span><div class="barwrap"><i class="${cls}" style="width:${clamp(v,0,100)}%"></i></div><span class="r">${Math.round(v)}</span></div>`}
 function myStatus(g,i){const c=C();const a=BYID[c.id];const d=cal(g)[i][3];
   if(S[g].inj[c.id]>0)return{t:'🚑 Du bist verletzt und fällst aus.',cls:'bad'};
-  if(a.r[d]<60)return{t:`Du fährst kein ${DN[d]} (Stärke unter 60).`,cls:'mut'};
+  if(a.r[d]<minR(c))return{t:`Du fährst kein ${DN[d]} (Stärke unter ${minR(c)}).`,cls:'mut'};
   if(!c.starts[d])return{t:'⏸ Du setzt bei diesem Rennen aus (regenerierst).',cls:'mut'};
   if(isFinal(g,i)&&!standings(g,d).slice(0,25).some(o=>o.id===c.id))return{t:'❌ Weltcupfinale nur für die Top 25 – du bist nicht dabei.',cls:'bad'};
+  if(c.kader==='J')return{t:`🏁 Nachwuchs: Du fährst parallel ein FIS-Rennen (${fisTotal(c)} FIS-Punkte bisher).`,cls:'ec'};
+  if(c.kader==='E'&&!teamRank(d).fix&&!ecDiscOk(c,d))return{t:`🇪🇺 Europacup-Kader: Du fährst parallel ein Europacup-Rennen. Ab 150 EC-Punkten im ${DN[d]} darfst du im Weltcup ran (jetzt ${(c.ec&&c.ec.pts[d])||0}).`,cls:'ec'};
   if(c.kader==='X'&&!teamRank(d).fix)return{t:'🇪🇺 Ohne Kader: kein Weltcup-Startplatz – du fährst parallel ein Europacup-Rennen.',cls:'ec'};
-  const t=teamRank(d);if(!t.fix&&t.rank>t.q)return{t:`❌ Nicht nominiert: Teamrang ${t.rank}, Quote ${t.q}.`,cls:'bad'};
+  const t=teamRank(d);if(!t.fix&&t.rank>t.q)return c.kader==='E'?{t:`🇪🇺 Weltcup-Chance, aber nicht nominiert (Teamrang ${t.rank}, Quote ${t.q}) – du fährst Europacup.`,cls:'ec'}:{t:`❌ Nicht nominiert: Teamrang ${t.rank}, Quote ${t.q}.`,cls:'bad'};
+  if(c.kader==='E'&&!t.fix)return{t:`🌟 Weltcup-Chance! Der Verband schickt dich ins Weltcuprennen (Teamrang ${t.rank}/${t.q}).`,cls:'ok'};
   return{t:`✅ Du startest${t.fix?' (Fixplatz Top 30)':` (Teamrang ${t.rank}/${t.q})`}.`,cls:'ok'}}
 function lastResultCard(c){const g=c.g;let li=-1;cal(g).forEach((x,i)=>{if(S[g].res[i])li=i});
   if(li<0)return `<div class="card"><h2>Letztes Rennen</h2><p class="mut">Noch keine Rennen gefahren.</p></div>`;
@@ -1972,7 +2057,7 @@ function injuryCard(c){const g=c.g;const inj=S[g].inj[c.id];
 let TST='skills';
 function rTrain(){
   const c=C();const a=BYID[c.id];
-  const chips=[['skills','🎿 Fähigkeiten'],['staff','👔 Betreuer'],['spons','💶 Sponsoren'],['fin','💰 Finanzen'],['team','⚔️ Nation & Rivale']];
+  const chips=[['skills','🎿 Fähigkeiten'],['staff','👔 Betreuer'],['spons','💶 Sponsoren'],['fin','💰 Finanzen'],['shop','🛍 Besitz'],['team','⚔️ Nation & Rivale']];
   let body='';
   if(TST==='skills'){
   const stars='★'.repeat(c.stars)+'☆'.repeat(5-c.stars);
@@ -1987,7 +2072,7 @@ function rTrain(){
    <div class="card"><h2>Trainingspunkte <span class="warn">${c.xp||0} XP</span></h2>
     <p class="mut small">XP pro Rennen: Ziel +8, Weltcuppunkte ÷4, Podest +12, Sieg +10, Erwartung übertroffen +6, Meilenstein +15. Ohne Start: Trainingstag (+10 XP, +40 % Effekt).</p>
     ${(c.tlog||[]).length?`<h3>Letzte Einheiten</h3><div class="news small">${c.tlog.slice(0,5).map(t=>`<div>${esc(t)}</div>`).join('')}</div>`:''}
-    <h3>Renneinsätze</h3><div class="opt">${DISC.map(d=>`<button class="chip ${c.starts[d]?'on':''}" data-start="${d}" ${a.r[d]<60?'disabled':''}>${DN[d]}</button>`).join('')}</div>
+    <h3>Renneinsätze</h3><div class="opt">${DISC.map(d=>`<button class="chip ${c.starts[d]?'on':''}" data-start="${d}" ${a.r[d]<minR(c)?'disabled':''}>${DN[d]}</button>`).join('')}</div>
     <h3>Schlüsselstellen</h3><div class="opt"><button class="chip ${c.interactive!==false?'on':''}" data-inter="1">Selbst entscheiden</button><button class="chip ${c.interactive===false?'on':''}" data-inter="0">Automatisch</button></div>
     <h3>Fähigkeiten</h3><div class="xpline">${Object.keys(c.perks||{}).map(k=>`<span class="pill">${PERKS[k][0]}</span>`).join('')||'<span class="mut small">noch keine</span>'}</div>
     <h3>Risiko bei Automatik</h3><div class="opt">${Object.entries(RISK).map(([k2,t])=>`<button class="chip ${c.risk===k2?'on':''}" data-risk="${k2}">${t}</button>`).join('')}</div></div></div>`;
@@ -2003,6 +2088,7 @@ function rTrain(){
     <div class="card" style="margin-top:12px"><h2>📨 Angebote</h2><p class="mut small">Neue Angebote gibt es zu jedem Saisonstart und nach deinem ersten Podest der Saison. Bessere Ergebnisse und Kader = größere Marken und mehr Geld. Ein Ausrüsterwechsel braucht ein paar Rennen Eingewöhnung.</p>
     ${(c.offers||[]).length?`<div class="stgrid">${c.offers.map((o,k)=>`<div class="offer"><div class="eyebrow">${o.type==='ski'?'Ski-Ausrüster':'Kopfsponsor'}${o.tier?' · '+'★'.repeat(o.tier):''}</div><b class="lead">${esc(o.name)} ${o.nat?flag(o.nat):''}</b><div class="small">${sponsorText(o)}</div><div class="small"><b>${fmtCHF(o.base)}</b>/Saison · ${o.years} Saison${o.years>1?'en':''}</div><button class="btn sm pri" data-sign="${k}">${c.sp[o.type]?'Wechseln':'Unterschreiben'}</button></div>`).join('')}</div>`:'<p class="mut">Gerade keine offenen Angebote.</p>'}</div>`;
   }else if(TST==='fin')body=rFin();
+  else if(TST==='shop')body=shopCard(c);
   else body=rivalTeam(c,a);
   return `<div class="subnav">${chips.map(([k,t])=>`<button class="chip ${TST===k?'on':''}" data-tst="${k}">${t}</button>`).join('')}</div>${body}`;
 }
@@ -2112,10 +2198,11 @@ function rCreate(){
   const nats=['AUT','SUI','GER','ITA','FRA','NOR','SWE','USA','CAN','SLO','CRO','CZE','SVK','POL','LIE','GBR','FIN','ESP','AND','NZL','BEL'];
   const L=S.legends||[];
   return `<div class="create"><div class="card">
-    <h1 style="font-size:24px">⛷️ Weltcup-Karriere</h1><p class="mut">Du bist 19, hast eine Startnummer jenseits der 50 und einen Traum: die Kristallkugel. Der Weltcup ${sLbl()} läuft mit allen echten Stars – du steigst ein.</p>
+    <h1 style="font-size:24px">⛷️ Weltcup-Karriere</h1><p class="mut">${CF.start==='pro'?'Du bist 19, hast eine Startnummer jenseits der 50 und einen Traum: die Kristallkugel. Der Weltcup '+sLbl()+' läuft mit allen echten Stars – du steigst ein.':'Du bist 16, fährst FIS-Rennen auf vereisten Hängen und träumst von der Kristallkugel. Über den Europacup musst du dir den Weg in den Weltcup erst erkämpfen.'}</p>
     <label class="f">Name</label><input id="cfName" value="${esc(CF.name)}" placeholder="Vorname Nachname" style="width:100%">
     <div class="g2" style="gap:12px;margin-top:0"><div><label class="f">Kategorie</label><div class="opt"><button class="chip ${CF.g==='M'?'on':''}" data-cf="g:M">Herren</button><button class="chip ${CF.g==='W'?'on':''}" data-cf="g:W">Damen</button></div></div>
     <div><label class="f">Nation</label><select id="cfNat" style="width:100%">${nats.map(n=>`<option value="${n}" ${n===CF.nat?'selected':''}>${flag(n)} ${NATNAME[n]||n}</option>`).join('')}</select></div></div>
+    <label class="f">Einstieg</label><div class="opt">${[['youth','🌱 Von ganz unten','Mit 16: FIS-Rennen → Europacup → Weltcup'],['pro','⛷️ Direkt in den Weltcup','Mit 19 im C-Kader']].map(([k,t,d])=>`<button class="chip big ${(CF.start||'youth')===k?'on':''}" data-cf="start:${k}"><b>${t}</b><br><span class="small">${d}</span></button>`).join('')}</div>
     <label class="f">Typ</label><div class="opt">${[['tech','🔄 Techniker:in','RTL & Slalom'],['speed','🚀 Speed','Abfahrt & Super-G'],['all','🎯 Allrounder:in','alle vier, dafür schwächer']].map(([k,t,d])=>`<button class="chip big ${CF.spec===k?'on':''}" data-cf="spec:${k}"><b>${t}</b><br><span class="small">${d}</span></button>`).join('')}</div>
     <label class="f">Schwierigkeit</label><div class="opt">${Object.entries(DIFF).map(([k,v])=>`<button class="chip big ${(CF.diff||'norm')===k?'on':''}" data-diff="${k}"><b>${v.n}</b><br><span class="small">${v.d}</span></button>`).join('')}</div>
     <label class="f">Karriereziel</label><div class="opt">${Object.entries(GOALS).map(([k,[t,d]])=>`<button class="chip big ${(CF.goal||'overall')===k?'on':''}" data-goal="${k}"><b>${t}</b><br><span class="small">${d}</span></button>`).join('')}</div>
@@ -2162,6 +2249,8 @@ function bind(){
   on('[data-camp]',e=>{C().summer.camp=e.dataset.camp;render()});
   on('[data-sfocus]',e=>{C().summer.focus=e.dataset.sfocus;render()});
   on('[data-hire]',e=>hire(e.dataset.hire));
+  on('[data-buy]',e=>buyItem(e.dataset.buy));
+  on('[data-sell]',e=>{if(e.dataset.arm)sellItem(e.dataset.sell);else{e.dataset.arm=1;e.textContent='Sicher? Nochmal tippen'}});
   on('[data-fire]',e=>fire(e.dataset.fire));
   on('[data-sign]',e=>signSponsor(+e.dataset.sign));
   on('[data-world]',e=>{CF.name=$('#cfName').value;CF.nat=$('#cfNat').value;CF.world=e.dataset.world;render()});
