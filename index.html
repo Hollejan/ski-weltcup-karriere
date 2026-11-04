@@ -1089,7 +1089,7 @@ function careerAfterRace(g,i,res,disc,ctx){
     spend('Reisen',['USA','CAN'].includes(cal(g)[i][2])?3500:1200);spend('Material & Service',600+500*lvl('service'));
     unlock('start');c.starts0++;if(c.starts0===1&&c.youth){press(`Weltcup-Debüt! ${BYID[me].name} ist ganz oben angekommen`);clog('🎉 Dein erstes Weltcuprennen!')}
     c.trk=c.trk||{};c.trk[res.tk]=(c.trk[res.tk]||0)+1;
-    c.wear=clamp((c.wear||0)+Math.max(1,5-lvl('service')-lvl('skitest')-(own('wax')?1:0)),0,100);bodyAdd(0.5+Math.max(0,age(BYID[me])-27)*0.12);
+    c.wear=clamp((c.wear||0)+Math.max(1,5-lvl('service')-lvl('skitest')-(own('wax')?1:0)),0,100);bodyAdd((0.5+Math.max(0,age(BYID[me])-27)*0.12)*(own('cryo')?0.75:1));
     const tr=track(venue,disc);
     loadAdd(disc==='DH'||disc==='SG'?7:6);const pf=(disc==='DH'||disc==='SG'?19:15)*(tr.tire||1)*(1.3-c.kond/100)*(1-0.08*lvl('kond'))*(hasPerk('kond')?0.85:1);c.fat=clamp(c.fat+pf,0,100);if(c.skiAdapt)c.skiAdapt--;
     c.rust=Math.max(0,(c.rust||0)*0.75-0.1);c.reinj=Math.max(0,(c.reinj||0)-1);
@@ -1202,7 +1202,7 @@ function doTrain(opt){
   const c=C();const a=BYID[c.id];const tp=c.trainPending;if(!tp)return;
   tp.done=tp.done||[];
   if(tp.reg)return;
-  if(opt==='reg'){if(tp.n)return;tp.reg=1;loadAdd(-8);c.fat=clamp(c.fat-18*(1+0.15*lvl('physio')),0,100);c.tlog=[`${tp.what}: 🛌 Regeneration`].concat(c.tlog||[]).slice(0,30);tp.done.push('🛌 Regeneration');toast('🛌 Ruhetag – Fitness steigt');c.trainPending=null;maybeEvent();save();render();window.scrollTo(0,0);return}
+  if(opt==='reg'){if(tp.n)return;tp.reg=1;loadAdd(-8);if(!tp.hurt)c.body=Math.max(0,(c.body||0)-(0.3+0.2*lvl('physio')));c.fat=clamp(c.fat-18*(1+0.15*lvl('physio')),0,100);c.tlog=[`${tp.what}: 🛌 Regeneration`].concat(c.tlog||[]).slice(0,30);tp.done.push('🛌 Regeneration');toast('🛌 Ruhetag – Fitness steigt');c.trainPending=null;maybeEvent();save();render();window.scrollTo(0,0);return}
   else{const T=TINT[TI];const cost=trainCost(opt,TI);if((c.xp||0)<cost)return;c.xp-=cost;const gn=trainGain(opt,TI);
     if(DN[opt])a.r[opt]=+Math.min(a.pot,a.r[opt]+gn).toFixed(2);else if(opt==='kond')c.kond=clamp(c.kond+gn,0,100);else c.mental=clamp(c.mental+gn,0,100);
     if(S[c.g].inj[c.id]>0)c.fat=0;else c.fat=clamp(c.fat+T.f*(1-0.08*lvl('kond')),0,100);
@@ -1366,7 +1366,8 @@ const CAMPS={saas:['🇨🇭 Saas-Fee (Gletscher)',20000,'+0.8 RTL & Slalom, +30
 const SFOCUS={power:['💪 Kraftblock','+6 Kondition',c=>{c.kond=clamp(c.kond+6,0,100)}],head:['🧠 Mentalcoaching','+6 Mental',c=>{c.mental=clamp(c.mental+6,0,100)}],
  mat:['🔧 Materialabstimmung','Eingewöhnung weg, Ski +0.1 in deiner besten Disziplin',c=>{c.skiAdapt=0;if(c.sp.ski){const d=mainDisc(BYID[c.id]);c.sp.ski.mat[d]=+((c.sp.ski.mat[d]||0)+0.1).toFixed(2)}}],
  media:['🎤 Medientour','+8 Beliebtheit, +8.000 CHF',c=>{popAdd(8);earn('Prämien',8000)}],
- rest:['🏖 Urlaub','Rost weg, +3 Mental',c=>{c.rust=0;c.mental=clamp(c.mental+3,0,100)}]};
+ rest:['🏖 Urlaub','Rost weg, +3 Mental, Körper −5',c=>{c.rust=0;c.mental=clamp(c.mental+3,0,100);c.body=Math.max(0,(c.body||0)-5)}],
+ reha:['🩺 Reha-Block','Körper −14, Kondition −3, kostet 10.000 CHF',c=>{c.body=Math.max(0,(c.body||0)-14);c.kond=clamp(c.kond-3,0,100);spend('Physio & Reha',10000)}]};
 function gainR(d,v){const c=C();const a=BYID[c.id];if(!a.r[d])return;a.r[d]=+Math.min(a.pot,a.r[d]+v*ageF(a)*clamp(1-(a.r[d]-75)/25,0.25,1)).toFixed(2)}
 function finishSummer(){const c=C();const s=c.summer;if(!s||!s.camp||!s.focus)return;const cp=CAMPS[s.camp];if(cp[1]&&c.money<cp[1])return;
   if(cp[1])spend('Trainingslager',cp[1]);cp[3](c);SFOCUS[s.focus][2](c);clog(`☀️ Sommer: ${cp[0]} + ${SFOCUS[s.focus][0]}`);toast('☀️ Bereit für die neue Saison!');c.summer=null;save();render()}
@@ -1457,7 +1458,7 @@ const SHOP=[
  ['flat','home','🏢 Eigene Wohnung',220000,6000,'Erholung +5 %, +3 Mental pro Saison',18,0],
  ['chalet','home','🏔 Chalet in den Bergen',950000,15000,'Erholung +10 %, +5 Mental pro Saison, +5 Beliebtheit sofort',18,0],
  ['gym','gear','🏋️ Heim-Kraftraum',25000,1000,'Konditionstraining +20 %',0,0],
- ['cryo','gear','🧊 Kältekammer',45000,2500,'Erholung +8 %',0,0],
+ ['cryo','gear','🧊 Kältekammer',45000,2500,'Erholung +8 %, Körper-Verschleiß pro Rennen −25 %',0,0],
  ['sim','gear','🥽 Ski-Simulator (VR)',80000,3000,'+3 XP an jedem Renn- und Trainingstag',0,0],
  ['wax','gear','🔧 Eigener Wachsraum',30000,2000,'Ski verschleißen langsamer',0,0],
  ['dog','life','🐕 Hund',2500,1200,'+2 Mental pro Saison – und jemand freut sich immer',0,0],
@@ -1794,7 +1795,7 @@ function nextSeason(){
   }
   rebuild();ensureDepth();
   if(c){c.fat=0;const left=(prevInj||0)-15;if(left>0)S[c.g].inj[c.id]=left;else if(prevInj){c.reha=c.reha;onReturn();c.rust=+(c.rust/2).toFixed(2)}}
-  rebuild();if(c){const kr=c.rival&&BYID[c.rival]&&BYID[c.rival].wunder;if(!kr)pickRival();makeOffers();c.pop=+((c.pop||10)*0.9).toFixed(1);c.summer={};c.event=null;c.load=Math.round((c.load||0)*0.2);c.body=Math.max(0,(c.body||0)-4);c.wear=Math.min(c.wear||0,30);makeTasks()}
+  rebuild();if(c){const kr=c.rival&&BYID[c.rival]&&BYID[c.rival].wunder;if(!kr)pickRival();makeOffers();c.pop=+((c.pop||10)*0.9).toFixed(1);c.summer={};c.event=null;c.load=Math.round((c.load||0)*0.2);c.body=Math.max(0,(c.body||0)-4-2*lvl('physio'));c.wear=Math.min(c.wear||0,30);makeTasks()}
   const nw=['M','W'].map(g=>ATH[g].filter(a=>a.rookie).map(a=>a.name).join(', '));
   for(const g of['M','W'])S[g].news.unshift(`🆕 Neu im Weltcup: ${nw[g==='M'?0:1]}`);
   if(ret.length)S.M.news.unshift(`👋 Rücktritte: ${ret.join(', ')}`),S.W.news.unshift(`👋 Rücktritte: ${ret.join(', ')}`);
@@ -2253,7 +2254,7 @@ function tasksCard(){const c=C();const T=c.tasks||[];
 function wearWarn(c,ctx){const w=c.wear||0;if(w<15)return '';const hi=w>=40;
   return `<div class="${hi?'lastsec badbg':'hud-last info'}" style="margin:10px 0">${hi?'⚠️ <b>Deine Ski sind ziemlich hinüber!</b>':'🎿 <b>Ski-Zustand</b>'} Verschleiß ${Math.round(w)} → <b>−${wearPen().toFixed(2)} Tempo</b>${ctx?' in diesem Rennen':' in jedem Rennen'}.
     <span style="display:block;margin-top:8px"><button class="btn sm ${hi?'gold':''}" data-act="newskis" ${c.money<skiPrice()?'disabled':''}>🎿 Neue Ski (${fmtCHF(skiPrice())})</button>${c.money<skiPrice()?' <span class="small">Zu wenig Geld</span>':''}</span></div>`}
-function wearBlock(c){return `${bar('Ski-Verschleiß',c.wear||0,'f')}${bar('Körper',c.body||0,'f')}<p class="mut small">Ski: −${wearPen().toFixed(2)} Tempo · Körper: ${bodyLbl(c.body||0)} (mehr Verletzungen, langsamere Erholung)</p>
+function wearBlock(c){return `${bar('Ski-Verschleiß',c.wear||0,'f')}${bar('Körper',c.body||0,'f')}<p class="mut small">Ski: −${wearPen().toFixed(2)} Tempo · Körper: ${bodyLbl(c.body||0)} (mehr Verletzungen, langsamere Erholung). Körper senken: Ruhetage${lvl('physio')?' (Physio verstärkt)':''}, im Sommer Urlaub oder Reha-Block${own('cryo')?'':', Kältekammer bremst den Zuwachs'}.</p>
   ${(c.wear||0)>=15?`<p><button class="btn sm" data-act="newskis" ${c.money<skiPrice()?'disabled':''}>🎿 Neue Ski (${fmtCHF(skiPrice())})</button></p>`:''}`}
 function legacyCard(c){const L=legacyScore(c);const gl=GOALS[c.goal||'overall'];
   return `<div class="card legacy-card"><h2>🎖 Legendenwertung <span class="stars">${starStr(L.stars)}</span></h2>
@@ -2276,7 +2277,7 @@ function trainCard(c){
    <p class="lead">Du hast <b class="warn">${c.xp||0} XP</b>. ${tp.day&&!tp.hurt?'Ganzer Trainingstag: <b>+40 % Trainingseffekt</b>.':''}${tp.hurt?' Verletzt wirkt Disziplintraining nur zu 30 %.':''}</p>
    <h3>Intensität</h3><div class="opt">${Object.entries(TINT).map(([k,T])=>`<button class="chip ${TI===k?'on':''}" data-int="${k}">${T.n} · ${T.c} XP${T.f?` · Müdigkeit +${T.f}`:''}</button>`).join('')}</div>
    <h3>Was trainierst du?${tp.n?` <span class="mut small">(Einheit ${tp.n+1} heute · Effekt ${Math.round(Math.max(0.4,1-0.2*tp.n)*100)} %)</span>`:''}</h3><div class="tgrid">${opts}
-   <button class="tbtn reg" data-train="reg" ${tp.n?'disabled':''}><b>🛌 Ruhetag</b><span class="mut small">${tp.n?'nicht mehr möglich – du hast heute trainiert':`0 XP · Fitness +${Math.round(18*(1+0.15*lvl('physio')))} · beendet den Tag`}</span></button></div>
+   <button class="tbtn reg" data-train="reg" ${tp.n?'disabled':''}><b>🛌 Ruhetag</b><span class="mut small">${tp.n?'nicht mehr möglich – du hast heute trainiert':`0 XP · Fitness +${Math.round(18*(1+0.15*lvl('physio')))} · Körper −${(0.3+0.2*lvl('physio')).toFixed(1)} · beendet den Tag`}</span></button></div>
    ${(tp.done||[]).length?`<h3>Heute erledigt (${tp.done.length})</h3><div class="xpline">${tp.done.map(d=>`<span class="pill">✓ ${esc(d)}</span>`).join('')}</div>`:''}
    <p class="mut small">Du kannst so viele Einheiten machen, wie deine XP reichen. Jede weitere Einheit am selben Tag bringt 20 % weniger und macht müde. Entweder trainieren oder ein Ruhetag zur Regeneration – beides an einem Tag geht nicht.</p>
    <p class="row-btn"><button class="btn pri" data-act="endday">✓ Trainingstag abschließen</button></p>
