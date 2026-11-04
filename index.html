@@ -2038,6 +2038,7 @@ function rHome(){
       ${a.r[d]>=minR(c)?`<div class="inline"><span class="mut">Start:</span> <button class="chip ${c.starts[d]?'on':''}" data-start="${d}">${c.starts[d]?'✓ Ich starte':'⏸ Pause – tippen zum Starten'}</button></div>`:''}
       <p class="row-btn"><button class="btn pri" data-act="one">${st.cls==='ok'?'🎿 Ab ins Starthaus':st.cls==='ec'?(c.kader==='J'?'🏁 Zum FIS-Rennen':'🇪🇺 Zum Europacup'):'▶ Trainingstag'}</button>${st.cls!=='ok'?'<button class="btn" data-act="live">📺 Rennen live ansehen</button>':''}</p></div>`}}
   h+=phaseBar('prep',info);
+  if((c.wear||0)>=40&&ni>=0)h+=`<div class="card alert">${wearWarn(c)}</div>`;
   if(c.event)h+=eventCard();
   h+=injuryCard(c);
   h+=ni<0?next:`<div class="g21" style="margin-top:0">${next}${lastResultCard(c)}</div>`;
@@ -2088,6 +2089,7 @@ function setupCard(){
    <h3>Wachs</h3><div class="opt">${WAXO.map(w=>`<button class="chip ${me.lastWax===w?'on':''}" data-wax="${w}">${WAX[w]}</button>`).join('')}</div>
    <h3>Ski-Setup</h3><div class="tgrid">${Object.entries(SETUP).map(([k,[t,d]])=>`<button class="tbtn ${me.lastSetup===k?'sel':''}" data-setup="${k}"><b>${t}</b><span class="mut small">${d}</span></button>`).join('')}</div>
    <p class="mut small">Piste heute: ${hardSnow(ctx)?'hart/eisig':'weich/griffig'} · Wetter: ${wx.n}</p>
+   <h3>Ski-Zustand</h3>${(me.wear||0)>=15?wearWarn(me,ctx):`<p class="small ok">✓ Ski in gutem Zustand (Verschleiß ${Math.round(me.wear||0)})</p>`}
    <p class="row-btn"><button class="btn racebtn" data-act="gosetup">🎿 Ab ins Starthaus</button></p></div>`;
 }
 function eventCard(){const c=C();const e=EVENTS.find(x=>x.id===c.event.id);
@@ -2109,6 +2111,9 @@ function pressCard(n){const c=C();const L=(c.press||[]).slice(0,n);
 
 function tasksCard(){const c=C();const T=c.tasks||[];
   return `<div class="card"><h2>🎯 Saisonaufgaben</h2>${T.length?`<div class="news">${T.map(t=>{const d=TASKS[t.k];return `<div>${t.done?'✅':'⬜'} ${esc(d.t)}${d.n&&!t.done?` <span class="mut small">(${t.p}/${d.n})</span>`:''}</div>`}).join('')}</div><p class="mut small">Jede erfüllte Aufgabe bringt Geld, Beliebtheit und Legendenpunkte. Neue Aufgaben gibt es zu jedem Saisonstart.</p>`:'<p class="mut">Neue Aufgaben zur nächsten Saison.</p>'}</div>`}
+function wearWarn(c,ctx){const w=c.wear||0;if(w<15)return '';const hi=w>=40;
+  return `<div class="${hi?'lastsec badbg':'hud-last info'}" style="margin:10px 0">${hi?'⚠️ <b>Deine Ski sind ziemlich hinüber!</b>':'🎿 <b>Ski-Zustand</b>'} Verschleiß ${Math.round(w)} → <b>−${wearPen().toFixed(2)} Tempo</b>${ctx?' in diesem Rennen':' in jedem Rennen'}.
+    <span style="display:block;margin-top:8px"><button class="btn sm ${hi?'gold':''}" data-act="newskis" ${c.money<skiPrice()?'disabled':''}>🎿 Neue Ski (${fmtCHF(skiPrice())})</button>${c.money<skiPrice()?' <span class="small">Zu wenig Geld</span>':''}</span></div>`}
 function wearBlock(c){return `${bar('Ski-Verschleiß',c.wear||0,'f')}${bar('Körper',c.body||0,'f')}<p class="mut small">Ski: −${wearPen().toFixed(2)} Tempo · Körper: ${bodyLbl(c.body||0)} (mehr Verletzungen, langsamere Erholung)</p>
   ${(c.wear||0)>=15?`<p><button class="btn sm" data-act="newskis" ${c.money<skiPrice()?'disabled':''}>🎿 Neue Ski (${fmtCHF(skiPrice())})</button></p>`:''}`}
 function legacyCard(c){const L=legacyScore(c);const gl=GOALS[c.goal||'overall'];
