@@ -64,7 +64,7 @@ tr.me td{background:rgba(244,196,48,.13)}
 .podium .g{height:110px;border-top:3px solid var(--gold)}.podium .s{height:90px;border-top:3px solid var(--silver)}.podium .b{height:75px;border-top:3px solid var(--bronze)}
 .podium b{display:block;font-size:14px}.podium span{font-size:12px;color:var(--mut)}
 .subnav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center}
-.subnav.sub2{margin-top:-4px}.subnav.sub2 .chip{font-size:12px;padding:4px 9px;background:transparent}
+.subnav.sub2{margin-top:-4px}.subnav.sub2 .chip{font-size:12px;padding:4px 9px}.subnav.sub2 .chip:not(.on){background:transparent}
 .chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--mut);cursor:pointer;font:inherit;font-size:13px}
 .chip.on{color:#fff;border-color:var(--ice);background:#1f3a55}
 .news{font-size:13px}.news div{padding:5px 0;border-bottom:1px dashed var(--line)}
@@ -2553,7 +2553,7 @@ function rWorld(){const g=C().g;const ev=eventOf(S.season);
 function rStand(){
   const g=C().g;const chips=[['overall','Gesamt'],['DH','Abfahrt'],['SG','Super-G'],['GS','Riesentorlauf'],['SL','Slalom']];
   let body;
-  if(STAB==='overall'){const st=standings(g);const rem=remaining(g);body=`<div class="card"><h2>${!rem&&st[0]?'🏆 Große Kristallkugel: '+nm(st[0].id):'Gesamtweltcup'} <span class="mut small">· noch ${rem} Rennen (max. ${rem*100} Pkt)${decided(g)&&rem?' · entschieden':''}</span></h2>${stTable(st)}</div>`}
+  if(STAB==='overall'){const st=standings(g);const rem=remaining(g);body=`<div class="card"><h2>${(!rem||decided(g))&&st[0]?'🏆 Große Kugel: '+nm(st[0].id):'Gesamtweltcup'} <span class="mut small">· noch ${rem} Rennen${rem?` (max. ${rem*100} Pkt)`:''}</span></h2>${stTable(st)}</div>`}
   else if(DN[STAB]){const st=standings(g,STAB);const rem=remaining(g,STAB);const dec=decided(g,STAB);body=`<div class="card"><h2>${dec&&st[0]?'🔮 Kleine Kugel: '+nm(st[0].id):DN[STAB]+'-Weltcup'} <span class="mut small">· noch ${rem} Rennen</span></h2>${stTable(st,STAB)}</div>`}
   else if(STAB==='nations')body=rNations();
   else if(STAB==='wm'){const ev=eventOf(S.season);body=!ev?`<div class="card"><h2>Kein Großereignis in ${sLbl()}</h2><p class="mut">WM und Olympia wechseln sich ab.</p></div>`:`<div class="card"><h2>🏅 ${ev[0]} ${S.season+1} · ${esc(ev[1])}</h2>${S[g].wm||S[g].wmp?wmTables(g):'<p class="mut">Findet im Februar statt.</p>'}</div>`}
