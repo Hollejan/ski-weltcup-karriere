@@ -724,7 +724,7 @@ const age=a=>S.season-a.by;
 
 // =============== KALENDER ===============
 function cal(g){const ev=eventOf(S.season);return CAL[g].filter(c=>c[3]!=='WM'||ev).map(c=>c[3]==='WM'?[c[0],ev[1],ev[2],'WM',ev[0]]:c)}
-function realOf(g,i){const r=REAL[S.season];return r&&r[g][i]}
+function realOf(g,i){return null} // keine vorgegebenen Ergebnisse mehr – jede Saison startet offen
 function yearOf(c){return +c[0].slice(0,2)>=7?S.season:S.season+1}
 function nextIdx(g){const c=cal(g);for(let i=0;i<c.length;i++){if(c[i][3]==='WM'){if(!S[g].wm)return i}else if(!S[g].res[i])return i}return -1}
 function isFinal(g,i){return cal(g)[i][1]==='Sun Valley'}
@@ -1065,7 +1065,8 @@ function doneCount(g){return Object.keys(S[g].res).length}
 
 // =============== KARRIERE ===============
 function newCareer(){
-  if(CF.world==='reset'){const L=S.legends||[];const ch=S.chaos;S=fresh();S.legends=L;S.chaos=ch;rebuild();ensureDepth();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}
+  const prog=S.season>2026||S.hist.length||(S.legends||[]).length;
+  if(CF.world==='reset'||!prog){const L=S.legends||[];const ch=S.chaos;S=fresh();S.legends=L;S.chaos=ch;rebuild();ensureDepth();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}
   const g=CF.g;const nm=(CF.name||'').trim()||'Neues Talent';
   const yo=CF.start!=='pro';const sa=yo?16:19;const dl=yo?16:0;
   const r={DH:62-dl,SG:62-dl,GS:62-dl,SL:62-dl};
@@ -2604,7 +2605,7 @@ function rCreate(){
       <div>🏔 <b>Strecken</b> mit Charakter, ⚔️ ein <b>Rivale</b> pro Saison, 🚑 <b>Verletzungen</b> mit Reha-Wahl.</div>
       <div>🎂 Die Karriere läuft über viele Saisonen – bis du sie beendest.</div></div>
       ${L.length?`<h3>Frühere Karrieren</h3><table>${L.map(x=>`<tr><td>${flag(x.nat)} ${esc(x.name)}</td><td class="r">${x.seasons} Saisonen</td><td class="r">${x.wins} Siege</td><td class="r stars">${x.stars?starStr(x.stars):''}</td></tr>`).join('')}</table>`:''}
-      <p class="mut small" style="margin-top:14px">Echte Daten: Kalender 2026/27 und Sölden-Podeste. Stärkewerte sind Schätzungen.</p></div></div>`;
+      <p class="mut small" style="margin-top:14px">Echte Daten: Kalender 2026/27 und alle aktuellen Stars. Stärkewerte sind Schätzungen.</p></div></div>`;
 }
 // ---------- Events ----------
 function bind(){
@@ -2658,7 +2659,7 @@ function bind(){
 function stopLive(){if(LIVE){clearTimeout(LIVE.timer);LIVE=null}}
 document.addEventListener('keydown',e=>{if(TIMING&&(e.code==='Space'||e.code==='Enter')){e.preventDefault();stopTiming()}});
 $('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.remove('on')};
-function initReal(){const r=REAL[S.season];if(r)for(const g of['M','W'])for(const i in r[g])simRace(g,+i);save()}
+function initReal(){save()} // Saison beginnt beim ersten Rennen (Sölden), nichts vorab simuliert
 S=load();
 if(S&&!S.ath)S=null;
 if(!S){S=fresh();rebuild();ensureDepth();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}else{rebuild();if(ensureDepth())save()}
