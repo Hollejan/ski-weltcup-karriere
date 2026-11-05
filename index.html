@@ -1066,7 +1066,7 @@ function doneCount(g){return Object.keys(S[g].res).length}
 // =============== KARRIERE ===============
 function newCareer(){
   const prog=S.season>2026||S.hist.length||(S.legends||[]).length;
-  if(CF.world==='reset'||!prog){const L=S.legends||[];const ch=S.chaos;S=fresh();S.legends=L;S.chaos=ch;rebuild();ensureDepth();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}
+  if(CF.world==='reset'||!prog){const L=S.legends||[];const ch=S.chaos;const LG=S.legacy;S=fresh();S.legends=L;S.chaos=ch;S.legacy=LG;rebuild();ensureDepth();S.prevPts={M:estPrev('M'),W:estPrev('W')};initReal()}
   const g=CF.g;const nm=(CF.name||'').trim()||'Neues Talent';
   const yo=CF.start!=='pro';const sa=yo?16:19;const dl=yo?16:0;
   const r={DH:62-dl,SG:62-dl,GS:62-dl,SL:62-dl};
@@ -1188,7 +1188,7 @@ function careerGoal(c){
 }
 function retireCareer(){if(S.pend)resolvePend('ctrl');CF.world='keep';const c=C();clog('Karriereende verkündet.');S.hist.forEach(h=>{});const a=BYID[c.id];
   const ls=legacyScore(c);S.legends=S.legends||[];S.legends.push({name:a.name,nat:a.nat,wins:c.wins,pods:c.pods,seasons:c.seasons.length,medals:c.medals,ach:Object.keys(c.ach).length,score:ls.sum,stars:ls.stars,goal:GOALS[c.goal||'overall'][0],goalOk:goalDone(c)});
-  S.legacy={name:a.name,stars:ls.stars};
+  S.legacy={name:a.name,stars:ls.stars};CF.leg=ls.stars>0;
   S.ath[c.g]=S.ath[c.g].filter(x=>x.id!==c.id);S.career=null;rebuild();save();render()}
 
 
