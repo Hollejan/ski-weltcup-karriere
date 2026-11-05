@@ -123,6 +123,7 @@ nav button.on{background:var(--panel2);border-color:var(--line);color:var(--txt)
 .gl-ic{font-size:22px;line-height:1}.globe-t.big .gl-ic{font-size:30px}.gl-l{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ice)}.gl-w b{font:800 17px var(--cond)}.gl-p{font-size:11.5px;color:var(--mut)}.gl-me{font-size:12px;margin-top:4px}
 .gl-foot{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:13px;align-items:center}
 @media(max-width:600px){.globes{grid-template-columns:1fr 1fr}}
+.offer.renew{border:2px solid var(--gold);background:rgba(244,196,48,.1)}
 .drawgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
 .lot{aspect-ratio:3/4;border:2px solid var(--line);background:linear-gradient(160deg,#1f4b7a,#0e223a);color:var(--txt);font:inherit;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s}
 .lot b{font-size:26px;font-family:var(--cond)}.lot span{font-size:10px;color:var(--mut);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
@@ -1277,18 +1278,25 @@ function makeOffers(){
   const heads=shuffle(HEADS.filter(h=>!c.sp.head||c.sp.head.name!==h[0])).slice(0,2);
   heads.forEach(h=>{const lv={1:15000,2:40000,3:100000}[t];let base=Math.round(lv*(0.8+rnd()*0.4)*fame/1000)*1000;const o={type:'head',name:h[0],perk:h[1],ptxt:h[2],years:1+Math.floor(rnd()*2)};
     if(h[1]==='base')base=Math.round(base*1.6/1000)*1000;if(h[1]==='points')o.perPt=[0,60,120,250][t];if(h[1]==='podium')o.pod=[0,10000,20000,40000][t];o.base=base;makeTarget(o,t);offers.push(o)});
-  c.offers=offers;
+  const rn=(c.renew||[]).filter(o=>!c.sp[o.type]);c.offers=rn.concat(offers.filter(o=>!rn.some(r=>r.name===o.name)));
 }
 function sponsorText(o){return sponsorText0(o)+(o.goal?` · 🎯 Ziel: ${o.goal.t}${o.strike?' (verwarnt!)':''}`:'')}
 function sponsorText0(o){if(o.type==='ski')return `Material: ${Object.entries(o.mat).map(([d,v])=>`${d} +${v}`).join(' · ')} · Podestprämie ${fmtCHF(o.pod)}`;
   return o.perk==='points'?`${fmtCHF(o.perPt)} pro Weltcuppunkt`:o.perk==='podium'?`Podestprämie ${fmtCHF(o.pod)}`:o.perk==='fit'?'+4 Erholung pro Tag':o.perk==='xp'?'+3 XP pro Zielankunft':'Hohes Fixum'}
 function signSponsor(k){const c=C();const o=c.offers[k];if(!o)return;const old=c.sp[o.type];
-  if(o.type==='ski'&&old&&old.name!==o.name)c.skiAdapt=5;
+  if(o.type==='ski'&&((old&&old.name!==o.name)||(!old&&c.prevSki&&c.prevSki!==o.name)))c.skiAdapt=5;if(o.type==='ski')c.prevSki=o.name;c.renew=(c.renew||[]).filter(x=>x.type!==o.type);
   c.sp[o.type]={...o,left:o.years};earn('Sponsoren',o.base,true);c.offers=c.offers.filter(x=>x.type!==o.type);
   clog(`✍️ Vertrag mit ${o.name} (${o.type==='ski'?'Ski-Ausrüster':'Kopfsponsor'}, ${o.years} Saison${o.years>1?'en':''}, ${fmtCHF(o.base)}/Saison)`);
   toast(`✍️ ${o.name} unterschrieben (+${fmtCHF(o.base)})`);save();render()}
 function skiBonus(d){const c=C();return c&&c.sp&&c.sp.ski?c.sp.ski.mat[d]||0:-0.2}
-function sponsorSeason(){const c=C();for(const k of['ski','head']){const s=c.sp[k];if(!s)continue;s.left--;if(s.left>0){earn('Sponsoren',s.base,true);clog(`💶 ${s.name}: ${fmtCHF(s.base)} Saisonprämie`)}else{clog(`📄 Vertrag mit ${s.name} ausgelaufen`);delete c.sp[k]}}}
+function sponsorSeason(){const c=C();c.renew=[];for(const k of['ski','head']){const s=c.sp[k];if(!s)continue;s.left--;if(s.left>0){earn('Sponsoren',s.base,true);clog(`💶 ${s.name}: ${fmtCHF(s.base)} Saisonprämie`)}
+  else{clog(`📄 Vertrag mit ${s.name} ausgelaufen`);if(k==='ski')c.prevSki=s.name;if(!s.strike)renewOffer(c,s);delete c.sp[k]}}}
+function renewOffer(c,s){const g=c.g;const me=c.id;const pods=cal(g).filter((x,i)=>{const r=S[g].res[i];return r&&r.fin.some(f=>f.id===me&&f.rk<=3)}).length;
+  const wins=cal(g).filter((x,i)=>{const r=S[g].res[i];return r&&r.fin.some(f=>f.id===me&&f.rk===1)}).length;
+  const f=1.1+Math.min(0.35,pods*0.04+wins*0.03+(c.pop||10)/1000);const r100=v=>Math.round(v/100)*100;
+  const o={...s,base:Math.round(s.base*f/1000)*1000,years:2+Math.floor(rnd()*2),renew:1,inc:Math.round((f-1)*100)};delete o.left;delete o.strike;
+  if(o.pod)o.pod=r100(o.pod*1.2);if(o.perPt)o.perPt=Math.round(o.perPt*1.15);makeTarget(o,Math.max(1,statusTier()));
+  c.renew.push(o);clog(`🔁 ${s.name} bietet eine Verlängerung an: ${fmtCHF(o.base)}/Saison (+${o.inc} %), ${o.years} Saisonen`);press(`${s.name} will mit ${BYID[me].name} verlängern`)}
 function migrateCareer(){const c=C();if(!c)return;if(!c.goal)c.goal='overall';if(c.wear==null)c.wear=0;if(c.body==null)c.body=0;if(c.legacy==null)c.legacy=0;if(!c.tasks)makeTasks();c.diff=c.diff||'norm';if(c.load==null)c.load=0;if(c.pop==null)c.pop=10;c.perks=c.perks||{};c.press=c.press||[];
   if(!c.staff){c.staff={};const m={service:'v',physio:'p',trainer:'t'};for(const k in (c.up||{}))if(c.up[k]>0)c.staff[{service:'service',physio:'physio',trainer:'tech'}[k]]=m[k]+Math.min(3,c.up[k])}
   c.own=c.own||{};if(!c.sp){c.sp={};makeOffers()}if(c.xp==null)c.xp=0;if(!c.tlog)c.tlog=[]}
@@ -2276,6 +2284,7 @@ function eventCard(){const c=C();const e=EVENTS.find(x=>x.id===c.event.id);
    <div class="choices">${e.o.map(([t],k)=>`<button class="choice ctrl" data-ev="${k}"><b>${t}</b></button>`).join('')}</div></div>`}
 function summerCard(){const c=C();const s=c.summer;
   return `<div class="phase phase-summer"><div class="pinfo"><b>☀️ SOMMERPAUSE</b> · Vorbereitung auf ${sLbl()}</div></div>
+   ${(c.renew||[]).filter(o=>!c.sp[o.type]).map(o=>`<div class="card alert" style="border-left-color:var(--gold)"><b>🔁 ${esc(o.name)} will verlängern!</b> <span class="small">${fmtCHF(o.base)}/Saison (+${o.inc} %), ${o.years} Saisonen</span> <button class="btn sm gold" ${go('biz','spons')}>Zum Angebot →</button></div>`).join('')}
    <div class="card summer-card"><h2 class="big">Sommer-Vorbereitung</h2><p class="mut">Wähle ein Trainingslager und einen Schwerpunkt für den Sommer. Konto: <b>${fmtCHF(c.money)}</b></p>
    <h3>Trainingslager</h3><div class="tgrid">${Object.entries(CAMPS).map(([k,[t,cost,d]])=>`<button class="tbtn ${s.camp===k?'sel':''}" data-camp="${k}" ${cost&&c.money<cost?'disabled':''}><b>${t}</b><span class="small">${d}</span><span class="mut small">${cost?fmtCHF(cost):'kostenlos'}</span></button>`).join('')}</div>
    <h3>Schwerpunkt</h3><div class="tgrid">${Object.entries(SFOCUS).map(([k,[t,d]])=>`<button class="tbtn ${s.focus===k?'sel':''}" data-sfocus="${k}"><b>${t}</b><span class="small">${d}</span></button>`).join('')}</div>
@@ -2461,7 +2470,7 @@ function rTrain(){
     const card=(t,o)=>`<div class="card"><h2>${t}</h2>${o?`<p class="lead"><b>${esc(o.name)}</b> ${o.nat?flag(o.nat):''}</p><p class="small">${sponsorText(o)}</p><p class="mut small">${fmtCHF(o.base)} pro Saison · noch ${o.left} Saison${o.left>1?'en':''}</p>${t.startsWith('🎿')&&c.skiAdapt?`<p class="warn small">Eingewöhnung ans neue Material: noch ${c.skiAdapt} Rennen</p>`:''}`:`<p class="mut">Kein Vertrag.${t.startsWith('🎿')?' Ohne Ausrüster fährst du mit Material von der Stange (−0.2 Tempo).':''}</p>`}</div>`;
     body=`<div class="g2" style="margin-top:0">${card('🎿 Ski-Ausrüster',c.sp.ski)}${card('🧢 Kopfsponsor',c.sp.head)}</div>
     <div class="card" style="margin-top:12px"><h2>📨 Angebote</h2><p class="mut small">💶 Podest- und Punkteprämien gibt es bei jedem Weltcup-Podest bzw. für jeden Weltcuppunkt, bei WM/Olympia-Medaillen sogar mehr (Gold doppelt). Von allen Sponsorgeldern gehen 25 % Steuern und 10 % Manager ab – netto bleiben 65 %.</p><p class="mut small">Neue Angebote gibt es zu jedem Saisonstart und nach deinem ersten Podest der Saison. Bessere Ergebnisse und Kader = größere Marken und mehr Geld. Ein Ausrüsterwechsel braucht ein paar Rennen Eingewöhnung.</p>
-    ${(c.offers||[]).length?`<div class="stgrid">${c.offers.map((o,k)=>`<div class="offer"><div class="eyebrow">${o.type==='ski'?'Ski-Ausrüster':'Kopfsponsor'}${o.tier?' · '+'★'.repeat(o.tier):''}</div><b class="lead">${esc(o.name)} ${o.nat?flag(o.nat):''}</b><div class="small">${sponsorText(o)}</div><div class="small"><b>${fmtCHF(o.base)}</b>/Saison · ${o.years} Saison${o.years>1?'en':''}</div><button class="btn sm pri" data-sign="${k}">${c.sp[o.type]?'Wechseln':'Unterschreiben'}</button></div>`).join('')}</div>`:'<p class="mut">Gerade keine offenen Angebote.</p>'}</div>`;
+    ${(c.offers||[]).length?`<div class="stgrid">${c.offers.map((o,k)=>`<div class="offer ${o.renew?'renew':''}"><div class="eyebrow">${o.renew?`🔁 Verlängerung · +${o.inc} % · `:''}${o.type==='ski'?'Ski-Ausrüster':'Kopfsponsor'}${o.tier?' · '+'★'.repeat(o.tier):''}</div><b class="lead">${esc(o.name)} ${o.nat?flag(o.nat):''}</b><div class="small">${sponsorText(o)}</div><div class="small"><b>${fmtCHF(o.base)}</b>/Saison · ${o.years} Saison${o.years>1?'en':''}</div><button class="btn sm pri" data-sign="${k}">${c.sp[o.type]?'Wechseln':'Unterschreiben'}</button></div>`).join('')}</div>`:'<p class="mut">Gerade keine offenen Angebote.</p>'}</div>`;
   }else if(TST==='fin')body=rFin();
   else if(TST==='shop')body=shopCard(c);
   else body=rivalTeam(c,a);
